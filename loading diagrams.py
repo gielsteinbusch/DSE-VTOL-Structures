@@ -33,6 +33,30 @@ def lift_rotorcraft(diameter, V_flight, rpm, rho, CL, number_segments):
     plt.grid(True)
     return lift_list, x_list
 
+
+def drag_rotorcraft(diameter,V_flight, rpm, rho, Cd0, A, e, CL, number_segments): 
+    x_list = []
+    drag_list = []
+    width_segment = diameter / number_segments
+    for segment in range(number_segments): 
+        if segment < number_segments/2.: 
+            distance_center = (number_segments/2. - segment)*width_segment
+            V_rotor = 2*pi*(rpm/60)*distance_center
+            V = V_flight - V_rotor
+            x_list.append(distance_center)
+        else:
+            distance_center = (segment - number_segments/2)*width_segment
+            V_rotor = 2*pi*(rpm/60)*distance_center
+            V = V_flight + V_rotor
+            x_list.append(distance_center)
+        S = pi* distance_center**2
+        CD = Cd0 + (CL**2)/(pi*A*e)
+        D = 0.5 * rho * V**2 * S * CD 
+        drag_list.append(D)
+    plt.plot(x_list, drag_list)
+    plt.grid(True)
+    return drag_list, x_list
+
 def shear_diagram(lift_list, x_list, W_aircraft):
     width_segment = x_list[1]-x_list[0]
     shearforce_list = []
