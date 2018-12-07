@@ -5,7 +5,7 @@ Created on Thu Dec  6 09:23:40 2018
 @author: giel
 """
 
-chordlength = 0.35
+chordlength = 1.
 
 filename = 'airfoil2312.txt' 
 fin = open(filename,'r')

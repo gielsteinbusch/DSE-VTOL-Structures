@@ -70,7 +70,7 @@ def shear_diagram(lift_list, x_list, W_aircraft):
     plt.plot(x_list,shearforce_list)
     plt.xlabel('x along span')
     plt.ylabel('Shearforce (N)')
-    return
+    return 
 
 def moment_diagram(lift_list, x_list, W_aircraft):
     width_segment = x_list[1]-x_list[0]
@@ -85,8 +85,9 @@ def moment_diagram(lift_list, x_list, W_aircraft):
     plt.plot(x_list,moment_list)
     plt.xlabel('x along span')
     plt.ylabel('Moment (N/m)')
-    return
-    
+    return moment_list
+  
+
 ####### UPPER ROTOR  
 plt.subplot(331)
 lift_list, x_list = lift_rotorcraft(5, 50, 150,0.405, 0.5, 1000)
