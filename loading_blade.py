@@ -44,13 +44,13 @@ def shear_diagram(totallift, lift_list, x_list):
     return totalmoment
 
 totalmoment = shear_diagram(totallift, lift_list, x_list)
-#print(totalmoment)
+print(totalmoment)
 #lift_list, x_list, totallift = lift_rotorcraft(6,50,150,0.5,0.5,1000)
 width_segment = x_list[1]-x_list[0]
 def moment_diagram(lift_list, x_list, totalmoment):
     moment_list = []
     for i in range(len(x_list)): 
-        moment = -totallift 
+        moment = -totallift
         j = 0
         while j<i  :
 #            print(i,j)
