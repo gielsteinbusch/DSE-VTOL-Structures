@@ -7,7 +7,6 @@ Created on Thu Dec  6 16:01:28 2018
 
 from math import *
 import matplotlib.pyplot as plt
-plt.figure(figsize=(9,9))
 
 def lift_rotorcraft(radius, V_flight, rpm, rho, CL, number_segments):
     x_list = []
@@ -26,7 +25,7 @@ def lift_rotorcraft(radius, V_flight, rpm, rho, CL, number_segments):
     #print(totallift)
     return lift_list, x_list, totallift
 
-lift_list, x_list, totallift = lift_rotorcraft(6,50,150,0.5,0.5,100)
+#lift_list, x_list, totallift = lift_rotorcraft(6,50,150,0.5,0.5,100)
 #print(lift_list)
 def shear_diagram(totallift, lift_list, x_list):
     width_segment = x_list[1]-x_list[0]
@@ -38,14 +37,13 @@ def shear_diagram(totallift, lift_list, x_list):
         total_shearforce = -totallift + lift_shearforce 
         shearforce_list.append(total_shearforce)
         totalmoment = totalmoment + lift_list[i]*width_segment*x_list[i]
-    plt.plot(x_list,shearforce_list)
-    plt.xlabel('x along span')
-    plt.ylabel('Shearforce (N)')
+#    plt.plot(x_list,shearforce_list)
+#    plt.xlabel('x along span')
+#    plt.ylabel('Shearforce (N)')
     return totalmoment, shearforce_list
 
-totalmoment, shearforce_list = shear_diagram(totallift, lift_list, x_list)
+#totalmoment, shearforce_list = shear_diagram(totallift, lift_list, x_list)
 
-width_segment = x_list[1]-x_list[0]
 def moment_diagram(lift_list, x_list, totallift, totalmoment):
     moment_list = []
     moment = 0
@@ -58,18 +56,12 @@ def moment_diagram(lift_list, x_list, totallift, totalmoment):
              Mlif += lift_list[j]*width_segment*(x_list[i]-x_list[j])
         moment = Mtotm - Mfres + Mlif
         moment_list.append(moment)   
-#    for i in range(1,len(x_list)+1): 
-#        j = i - 1 
-#        force = -shearforce_list[-i] * width_segment
-#        arm = max(x_list) - x_list[-i]    
-#        moment = moment + force*arm
-#        moment_list.append(moment)
-    plt.plot(x_list,moment_list)
-    plt.xlabel('x along span')
-    plt.ylabel('Moment (N/m)')
+#    plt.plot(x_list,moment_list)
+#    plt.xlabel('x along span')
+#    plt.ylabel('Moment (N/m)')
     return moment_list
 
-moment_diagram(lift_list, x_list, totallift, totalmoment)
+#moment_diagram(lift_list, x_list, totallift, totalmoment)
 
-
+#plt.figure(figsize=(9,9))
 #plt.plot(x_list, moment_diagram(lift_list, x_list, totalmoment))
