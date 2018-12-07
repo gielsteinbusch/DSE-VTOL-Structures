@@ -67,3 +67,4 @@ moment_diagram( lift_list, x_list, totalmoment )
 
 
 plt.plot(x_list, moment_diagram(lift_list, x_list, totalmoment))
+plt.axhline(-300000, 0, 0.8)
