@@ -15,9 +15,9 @@ from mpl_toolkits.mplot3d import Axes3D
 radius = 6.
 taper = 0.5
 chordlength = 0.35
-inc_angle = 5
-twist = 5
-disc_steps = 10
+inc_angle = 0
+twist = 0
+disc_steps = 1000
 skin_thickness = 0.003
 V_flight = 50
 rpm = 210
@@ -49,6 +49,7 @@ count = 0
 plt.figure()
 centroids = []
 listmaxbendstress = []
+colourstress = []
 for c in taperchord: 
     # Calculate twist alang span
     twiz = twisting[count]
@@ -90,7 +91,7 @@ for c in taperchord:
     stress_list_z = []
     moment_x = moment_list[count]
     moment_z = moment_list[count]/LDratio
-    sigmaprofile = []  #stress in each cross section
+    sigmaprofile = [1]  #stress in each cross section
     for i in range(len(x_coordinates)-1):
         stress_x = moment_x * cen_z_list[i] / ix
         stress_list_x.append(stress_x)
@@ -102,6 +103,7 @@ for c in taperchord:
     listmaxbendstress.append(maxbend_stress)
     count = count + 1
     
+    colourstress.append(np.array(sigmaprofile))
 print(listmaxbendstress)
 #print(centroids)
 
@@ -110,7 +112,10 @@ plt.plot(length_ds, listmaxbendstress)
     
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-   
-ax.scatter(profilex, profilez,profiley)
+c = colourstress
+plt.xlim(0, 6)
+plt.ylim(0, 0.5)
+#plt.zlim(0, 0.5)
+ax.scatter(profilex, profiley,profilez, c=c, cmap=plt.jet())
 
-#print(twisting)
+#ax.scatter(x, y, z, c=c, cmap=plt.hot())
