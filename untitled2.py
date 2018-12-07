@@ -13,11 +13,11 @@ from mpl_toolkits.mplot3d import Axes3D
 
 ## input values
 radius = 6.
-taper = 0.5
+taper = 1
 chordlength = 0.35
 inc_angle = 0
 twist = 0
-disc_steps = 1000
+disc_steps = 10
 skin_thickness = 0.003
 V_flight = 50
 rpm = 210
@@ -113,9 +113,7 @@ plt.plot(length_ds, listmaxbendstress)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 c = colourstress
-plt.xlim(0, 6)
-plt.ylim(0, 0.5)
-#plt.zlim(0, 0.5)
+
 ax.scatter(profilex, profiley,profilez, c=c, cmap=plt.jet())
 
 #ax.scatter(x, y, z, c=c, cmap=plt.hot())
