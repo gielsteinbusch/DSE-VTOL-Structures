@@ -23,11 +23,11 @@ def lift_rotorcraft(radius, V_flight, rpm, rho, CL, number_segments):
         lift_list.append(L)
         x_list.append(distance_center)
         totallift = totallift + L*width_segment
-    print(totallift)
+    #print(totallift)
     return lift_list, x_list, totallift
 
 lift_list, x_list, totallift = lift_rotorcraft(6,50,150,0.5,0.5,1000)
-
+#print(lift_list)
 def shear_diagram(totallift, lift_list, x_list):
     width_segment = x_list[1]-x_list[0]
     shearforce_list = []
@@ -44,18 +44,26 @@ def shear_diagram(totallift, lift_list, x_list):
     return totalmoment
 
 totalmoment = shear_diagram(totallift, lift_list, x_list)
-lift_list, x_list, totallift = lift_rotorcraft(6,50,150,0.5,0.5,1000)
+#print(totalmoment)
+#lift_list, x_list, totallift = lift_rotorcraft(6,50,150,0.5,0.5,1000)
+width_segment = x_list[1]-x_list[0]
 def moment_diagram(lift_list, x_list, totalmoment):
-    width_segment = x_list[1]-x_list[0]
     moment_list = []
     for i in range(len(x_list)): 
         moment = -totallift 
-        for j in range(i):
-            moment += (lift_list[j]*width_segment) * (x_list[i]-x_list[j])
+        j = 0
+        while j<i  :
+#            print(i,j)
+#            print(lift_list[i], x_list[i],x_list[j])
+            moment = moment +  (lift_list[int(j)]*width_segment) * (x_list[i] - x_list[int(j)])
+            j += 1
         moment_list.append(moment)
     plt.plot(x_list,moment_list)
     plt.xlabel('x along span')
     plt.ylabel('Moment (N/m)')
     return moment_list
 
-moment_diagram(totallift, lift_list, x_list)
+moment_diagram( lift_list, x_list, totalmoment )
+
+
+plt.plot(x_list, moment_diagram(lift_list, x_list, totalmoment))
