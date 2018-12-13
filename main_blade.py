@@ -179,28 +179,34 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
     return profile_x, profile_y, profile_z, A_list, ix_list, iz_list, ixz_list, colourstress, base_shear, q0_list
 
 profile_x, profile_y, profile_z, A_list, ix_list, iz_list, ixz_list, colourstress, base_shear, q0_list = stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness)
-#adding the redundant shear flows to the base shear flows 
-shear_flow = []
-shear_stress = []
-for j in range(len(taperchord)):
-    flow = np.array(base_shear[j])
-    flow = flow + q0_list[j]
-    #print(q0_list[j])
-    shear_flow.append(flow)
-    shear_stress.append(flow/skin_thickness)
-     
-#vonmises stress on the cross sections
-vonmises = []
-for i in range(len(taperchord)):
-    vm_list= []
-    for  j in range(len(x_coordinates)-1): 
-        vm = np.sqrt((colourstress[i][j])**2 + 3*(shear_stress[i][j])**2)
-        vm_list.append(vm)
-    vonmises.append(vm_list)
-    
+#adding the redundant shear flows to the base shear flows ------------------------------------------------------------------------------------------------------------------------------------------------------
+def total_shear(taperchord, base_shear, q0_list):
+    shear_flow = []
+    shear_stress = []
+    for j in range(len(taperchord)):
+        flow = np.array(base_shear[j])
+        flow = flow + q0_list[j]
+        #print(q0_list[j])
+        shear_flow.append(flow)
+        shear_stress.append(flow/skin_thickness)
+    return shear_flow, shear_stress
+shear_flow, shear_stress = total_shear(taperchord, base_shear, q0_list)
+#vonmises stress on the cross sections -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def von_mises(taperchord, colourstress, shear_stress, x_coordinates):
+    vonmises = []
+    for i in range(len(taperchord)):
+        vm_list= []
+        maxlist = []
+        for  j in range(len(x_coordinates)-1): 
+            vm = np.sqrt((colourstress[i][j])**2 + 3*(shear_stress[i][j])**2)
+            vm_list.append(vm)
+        vonmises.append(vm_list)
+        maxlist.append(max(vm_list))
+    return vonmises, max(maxlist)
+vonmises, max_vm = von_mises(taperchord, colourstress, shear_stress, x_coordinates)
+##########################################################---------------------plotting 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection ='3d')
-
 #ax = Axes3D(fig)
 #plotting bend stress
 bend = []
@@ -226,7 +232,7 @@ vm = np.array(vm)
 # UN-(#) these to see the stress distributions... 
 #ax.scatter(profile_x, profile_y, profile_z, c = bend, cmap=plt.jet())
 #ax.scatter(profile_x, profile_y, profile_z, c = shear, cmap=plt.jet())
-#ax.scatter(profile_x, profile_y, profile_z, c=vm, cmap=plt.jet())
+ax.scatter(profile_x, profile_y, profile_z, c=vm, cmap=plt.jet())
 
 #plt.figure()
 #plt.plot( np.cumsum(np.ones(len(qb_list))), qb_list)
