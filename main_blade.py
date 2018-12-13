@@ -145,7 +145,7 @@ for c in taperchord:
         parallelogram = np.cross(u,v)
         dA = 0.5*parallelogram
         A_0 = A_0 + dA 
-#        
+        
     A_list.append(A_0)
     
     #NOW DO THE INTERNAL MOMENT SHIT (we choose internal moment sum at the location of cross of line of action of Sx and SZ)
@@ -166,7 +166,7 @@ for c in taperchord:
     M_int_list.append(internalM) 
     q0_list.append(M_int_list[-1]/(-2.*A_0)) #this line calculates the redundant shear flow 
     
-    print(min(qb_sum), internalM/(-2.*A_0))
+    #print(min(qb_sum), internalM/(-2.*A_0))
     
     
     count = count + 1
