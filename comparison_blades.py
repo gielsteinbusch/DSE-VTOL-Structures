@@ -8,7 +8,6 @@ import numpy as np
 from loading_blade import lift_rotorcraft, shear_diagram, moment_diagram
 from main_blade import stress_analysis, total_shear, von_mises
 from airfoil import list_x, list_y
-from loading_diagrams import 
 import matplotlib.pyplot as plt
 #define the material properties for analysis (Carbon Fiber)
 Emod = 70e9
@@ -51,6 +50,14 @@ taperchord3 = np.linspace(chord3, taper*chord3 , disc_steps)
 taperchord4 = np.linspace(chord4, taper*chord3 , disc_steps)
 twisting = -1* np.linspace(inc_angle, inc_angle- twist , disc_steps)
 twisting = np.deg2rad(twisting)
+
+#plottting
+plt.figure(figsize=(9,9))
+plt.plot(x_list, shearforce_list3)
+plt.plot(x_list, moment_list3)
+plt.figure(figsize=(9,9))
+plt.plot(x_list, shearforce_list4)
+plt.plot(x_list, moment_list4)
 
 max_vm3 = Emod
 max_vm4 = Emod

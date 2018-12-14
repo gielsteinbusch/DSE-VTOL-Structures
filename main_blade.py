@@ -21,7 +21,7 @@ chordlength = 0.35
 inc_angle = 0
 twist = 0
 disc_steps = 50
-skin_thickness = 0.003
+skin_thickness = 0.005
 V_flight = 0
 rpm = 286
 rho = 0.5
@@ -45,7 +45,7 @@ twisting = -1* np.linspace(inc_angle, inc_angle- twist , disc_steps)
 twisting = np.deg2rad(twisting)
 
 
-def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness):
+def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness, shear_center):
     profile_x = []
     profile_z = []
     profile_y = []
@@ -54,7 +54,7 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
     iz_list = []
     ixz_list = []
     count = 0
-    plt.figure()
+    #plt.figure()
     centroids = []
     listmaxbendstress = []
     colourstress = []
@@ -71,7 +71,7 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
         # Applying taper ratio
         for i in range(len(x_coordinates)):
             profile_y.append(length_ds[list(taperchord).index(c)])
-        plt.plot(profile_x[count],profile_z[count])
+        #plt.plot(profile_x[count],profile_z[count])
         
         # Calculate center of gravity
         cen_x_list = []
@@ -178,7 +178,7 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
 
     return profile_x, profile_y, profile_z, A_list, ix_list, iz_list, ixz_list, colourstress, base_shear, q0_list
 
-profile_x, profile_y, profile_z, A_list, ix_list, iz_list, ixz_list, colourstress, base_shear, q0_list = stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness)
+profile_x, profile_y, profile_z, A_list, ix_list, iz_list, ixz_list, colourstress, base_shear, q0_list = stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness, shear_center)
 #adding the redundant shear flows to the base shear flows ------------------------------------------------------------------------------------------------------------------------------------------------------
 def total_shear(taperchord, base_shear, q0_list):
     shear_flow = []
@@ -202,41 +202,43 @@ def von_mises(taperchord, colourstress, shear_stress, x_coordinates):
             vm_list.append(vm)
         vonmises.append(vm_list)
         maxlist.append(max(vm_list))
-    return vonmises, max(maxlist)
+        maxlist.append(min(vm_list))
+    return vonmises, max(np.abs(maxlist))
 vonmises, max_vm = von_mises(taperchord, colourstress, shear_stress, x_coordinates)
+print(max_vm)
 ##########################################################---------------------plotting 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection ='3d')
-#ax = Axes3D(fig)
-#plotting bend stress
-bend = []
-for t in range(len(taperchord)):
-    for x in colourstress[t]:
-        bend.append(x)
-bend = np.array(bend)
-#plotting shear stress
-shear = []
-for t in range(len(taperchord)):
-    for x in shear_stress[t]:
-        shear.append(x)
-    shear.append(-1)
-shear = np.array(shear)
-#plotting vonmises stress 
-vm = []
-for t in range(len(taperchord)):
-    for x in vonmises[t]:
-        vm.append(x)
-    vm.append(1)
-vm = np.array(vm)
-
-# UN-(#) these to see the stress distributions... 
-#ax.scatter(profile_x, profile_y, profile_z, c = bend, cmap=plt.jet())
-#ax.scatter(profile_x, profile_y, profile_z, c = shear, cmap=plt.jet())
-ax.scatter(profile_x, profile_y, profile_z, c=vm, cmap=plt.jet())
-
-#plt.figure()
-#plt.plot( np.cumsum(np.ones(len(qb_list))), qb_list)
-#plt.plot(np.cumsum(np.ones(len(qb_list))), qb_sum)
-#plt.plot(np.cumsum(np.ones(len(qb_list))), flow )
-#plt.show()
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection ='3d')
+#
+##plotting bend stress
+#bend = []
+#for t in range(len(taperchord)):
+#    for x in colourstress[t]:
+#        bend.append(x)
+#bend = np.array(bend)
+##plotting shear stress
+#shear = []
+#for t in range(len(taperchord)):
+#    for x in shear_stress[t]:
+#        shear.append(x)
+#    shear.append(-1)
+#shear = np.array(shear)
+##plotting vonmises stress 
+#vm = []
+#for t in range(len(taperchord)):
+#    for x in vonmises[t]:
+#        vm.append(x)
+#    vm.append(1)
+#vm = np.array(vm)
+#
+## UN-(#) these to see the stress distributions... 
+##ax.scatter(profile_x, profile_y, profile_z, c = bend, cmap=plt.jet())
+##ax.scatter(profile_x, profile_y, profile_z, c = shear, cmap=plt.jet())
+#ax.scatter(profile_x, profile_y, profile_z, c=vm, cmap=plt.jet())
+#
+##plt.figure()
+##plt.plot( np.cumsum(np.ones(len(qb_list))), qb_list)
+##plt.plot(np.cumsum(np.ones(len(qb_list))), qb_sum)
+##plt.plot(np.cumsum(np.ones(len(qb_list))), flow )
+##plt.show()
 
