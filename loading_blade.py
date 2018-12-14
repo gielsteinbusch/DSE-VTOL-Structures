@@ -38,6 +38,7 @@ def shear_diagram(totallift, lift_list, x_list):
        totalmoment = totalmoment + lift_list[i]*x_list[i]
    return totalmoment, shearforce_list
 
+
 def moment_diagram(lift_list, x_list, totallift, totalmoment):
    moment_list = []
    moment = 0
@@ -51,10 +52,12 @@ def moment_diagram(lift_list, x_list, totallift, totalmoment):
        moment_list.append(moment)
    return moment_list
 
+
 #lift_list, x_list, totallift = lift_rotorcraft(6,50,150,0.5,0.5,1000)
 #totalmoment, shearforce_list = shear_diagram(totallift, lift_list, x_list)
 #moment_list = moment_diagram(lift_list, x_list, totallift, totalmoment)
 #
 #plt.figure(figsize=(9,9))
-#plt.plot(x_list, moment_list)
 #plt.plot(x_list, shearforce_list)
+#plt.plot(x_list, moment_list)
+
