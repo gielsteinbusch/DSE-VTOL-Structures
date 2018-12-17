@@ -14,38 +14,38 @@ from loading_blade import lift_rotorcraft, shear_diagram, moment_diagram
 
 
 
-## input values
-radius = 6.
-taper = 0.5
-chordlength = 0.35
-inc_angle = 0
-twist = 0
-disc_steps = 50
-skin_thickness = 0.005
-V_flight = 0
-rpm = 286
-rho = 0.5
-CL = 0.5
-W_aircraft = 2500
-LDratio = 9
-shear_center = -0.5*0.5*chordlength
+### input values
+#radius = 6.
+#taper = 0.5
+#chordlength = 0.35
+#inc_angle = 0
+#twist = 0
+#disc_steps = 200
+#skin_thickness = 0.005
+#V_flight = 0
+#rpm = 286
+#rho = 0.5
+#CL = 0.5
+#W_aircraft = 2500
+#LDratio = 9
+#shear_center = -0.5*0.5*chordlength
 
-## import moment distribution
-lift_list, x_list, totallift = lift_rotorcraft(radius,V_flight, rpm, rho, CL, disc_steps)
-totalmoment, shearforce_list = shear_diagram(totallift, lift_list, x_list)
-moment_list = moment_diagram(lift_list, x_list, totallift, totalmoment)
+### import moment distribution
+#lift_list, x_list, totallift = lift_rotorcraft(radius,V_flight, rpm, rho, CL, disc_steps)
+#totalmoment, shearforce_list = shear_diagram(totallift, lift_list, x_list)
+#moment_list = moment_diagram(lift_list, x_list, totallift, totalmoment)
+#
+#x_coordinates = np.array(list_x)
+#z_coordinates = np.array(list_y)
+#
+#
+#length_ds = np.linspace(0, radius, disc_steps)
+#taperchord = np.linspace(chordlength, taper*chordlength , disc_steps)
+#twisting = -1* np.linspace(inc_angle, inc_angle- twist , disc_steps)
+#twisting = np.deg2rad(twisting)
 
-x_coordinates = np.array(list_x)
-z_coordinates = np.array(list_y)
 
-
-length_ds = np.linspace(0, radius, disc_steps)
-taperchord = np.linspace(chordlength, taper*chordlength , disc_steps)
-twisting = -1* np.linspace(inc_angle, inc_angle- twist , disc_steps)
-twisting = np.deg2rad(twisting)
-
-
-def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness, shear_center):
+def stress_analysis(x_coordinates, z_coordinates, taper, LDratio, taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness, shear_center):
     profile_x = []
     profile_z = []
     profile_y = []
@@ -123,7 +123,8 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
         
         #Calculate base shear flow through integrating  qx_coeff *(t*x or z) *ds
         Sz = shearforce_list[count]
-        Sx = shearforce_list[count]/LDratio                                          #REAL REMOVE THESE FACTORS
+        Sx = shearforce_list[count]/LDratio 
+                                         #REAL REMOVE THESE FACTORS
         qx_coef = -(Sx*ix - Sz*ixz) / (ix*iz - ixz**2)
         qz_coef = -(Sz*iz - Sx*ixz) / (ix*iz - ixz**2)
         qb = 0
@@ -144,9 +145,9 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
             bx,bz = profile_x[count][i+1], profile_z[count][i+1]
             u = np.array([ax,az])
             v = np.array([bx,bz])
-            OA = np.sqrt(ax**2 + az**2) 
-            OB = np.sqrt(bx**2 + bz**2)
-            AB = np.sqrt((bx - ax)**2 + (bz - az)**2)
+#            OA = np.sqrt(ax**2 + az**2) 
+#            OB = np.sqrt(bx**2 + bz**2)
+#            AB = np.sqrt((bx - ax)**2 + (bz - az)**2)
             parallelogram = np.cross(u,v)
             dA = 0.5*parallelogram
             A_0 = A_0 + dA 
@@ -156,12 +157,12 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
         #NOW DO THE INTERNAL MOMENT SHIT (we choose internal moment sum at the location of cross of line of action of Sx and SZ)
         #take sum of internal shear flow moments about a single point
         internalM = 0
-        for i in range(1,len(x_coordinates)-1):
+        for i in range(len(x_coordinates)-1):
             Qb = qb_sum[i]                                                         #sum or standard?? 
-            axM = profile_x[count][i-1]
-            azM = profile_z[count][i-1]
-            bxM = profile_x[count][i]
-            bzM = profile_z[count][i]
+            axM = profile_x[count][i]
+            azM = profile_z[count][i]
+            bxM = profile_x[count][i+1]
+            bzM = profile_z[count][i+1]
             seglen = np.sqrt((bxM-axM)**2 + (bzM - azM)**2) 
             Qxb = ((bxM - axM)/seglen)*Qb
             Qzb = ((bzM - azM)/seglen)*Qb
@@ -170,7 +171,7 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
             internalM = internalM + (Qxb*Marmz + Qzb*Marmx)*seglen 
         M_int_list.append(internalM) 
         q0_list.append(M_int_list[-1]/(-2.*A_0)) #this line calculates the redundant shear flow 
-        
+       # print(q0_list[-1])
         #print(min(qb_sum), internalM/(-2.*A_0))
         
         
@@ -178,9 +179,9 @@ def stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list,
 
     return profile_x, profile_y, profile_z, A_list, ix_list, iz_list, ixz_list, colourstress, base_shear, q0_list
 
-profile_x, profile_y, profile_z, A_list, ix_list, iz_list, ixz_list, colourstress, base_shear, q0_list = stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness, shear_center)
+#profile_x, profile_y, profile_z, A_list, ix_list, iz_list, ixz_list, colourstress, base_shear, q0_list = stress_analysis(taperchord,length_ds,twisting, totalmoment, shearforce_list, moment_list, skin_thickness, shear_center)
 #adding the redundant shear flows to the base shear flows ------------------------------------------------------------------------------------------------------------------------------------------------------
-def total_shear(taperchord, base_shear, q0_list):
+def total_shear(taperchord, base_shear, q0_list, skin_thickness):
     shear_flow = []
     shear_stress = []
     for j in range(len(taperchord)):
@@ -190,7 +191,7 @@ def total_shear(taperchord, base_shear, q0_list):
         shear_flow.append(flow)
         shear_stress.append(flow/skin_thickness)
     return shear_flow, shear_stress
-shear_flow, shear_stress = total_shear(taperchord, base_shear, q0_list)
+#shear_flow, shear_stress = total_shear(taperchord, base_shear, q0_list)
 #vonmises stress on the cross sections -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def von_mises(taperchord, colourstress, shear_stress, x_coordinates):
     vonmises = []
@@ -204,8 +205,8 @@ def von_mises(taperchord, colourstress, shear_stress, x_coordinates):
         maxlist.append(max(vm_list))
         maxlist.append(min(vm_list))
     return vonmises, max(np.abs(maxlist))
-vonmises, max_vm = von_mises(taperchord, colourstress, shear_stress, x_coordinates)
-print(max_vm)
+#vonmises, max_vm = von_mises(taperchord, colourstress, shear_stress, x_coordinates)
+#print(max_vm)
 ##########################################################---------------------plotting 
 #fig = plt.figure()
 #ax = fig.add_subplot(111, projection ='3d')
