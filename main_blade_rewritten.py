@@ -7,13 +7,13 @@ Created on Sun Dec 16 11:56:23 2018
 
 from airfoil import list_x, list_y
 import numpy as np
+import matplotlib.pyplot as plt
 
 radius = 6.
 taper = 0.5
 chord_length = 0.35
 inc_angle = 0
 twist = 0
-disc_steps = 50
 skin_thickness = 0.005
 V_flight = 0
 rpm = 286
@@ -21,23 +21,30 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-shear_center = -0.5*0.5*chordlength
-number_segments = 100
+#shear_center = -0.5*0.5*chordlength
+disc_steps = 10
 
 
 class Blade_loading:
-    def __init__(self, radius, chord_length, V_flight, rpm, rho, CL, number_segments):
+    def __init__(self, radius, chord_length, taper, V_flight, rpm, rho, CL, list_x, list_z, disc_steps):
         self.radius = radius
         self.chord_length = chord_length
+        self.taper = taper
         self.V_flight = V_flight
-    
+        self.length_ds = np.linspace(0, radius, disc_steps)
+        self.taperchord = np.linspace(chord_length, taper*chord_length , disc_steps)
+        self.twisting = np.deg2rad(-1* np.linspace(inc_angle, inc_angle- twist , disc_steps))
+        self.disc_steps = disc_steps
+        self.x_coordinates = np.array(list_x)
+        self.z_coordinates = np.array(list_z)
+        
     def lift_distribution(self):
         self.x_list = []
         self.lift_list = []
         self.totallift = 0
         x = []
-        width_segment = radius / number_segments
-        for segment in range(number_segments+1):
+        width_segment = radius / disc_steps
+        for segment in range(disc_steps+1):
             distance_center = segment*width_segment
             V_rotor = 2*np.pi*(rpm/60)*distance_center
             V_total = V_flight + V_rotor
@@ -71,9 +78,60 @@ class Blade_loading:
                 Mlif += self.lift_list[j]*(self.x_list[i]-self.x_list[j])
             moment = Mtotm - Mfres + Mlif
             self.moment_list.append(moment)
-        return self.moment_list   
+        return self.moment_list
+    
+    def twist_taper(self):
+        self.profile_x = []
+        self.profile_z = []
+        self.profile_y = []
+        for step in range(disc_steps):
+            twiz = self.twisting[step]
+            c = self.taperchord[step]
+            self.profile_x.append((self.x_coordinates*c - self.taper*c)*np.cos(twiz) - (self.z_coordinates*c)           *np.sin(twiz)) #maybe remove taper*c 
+            self.profile_z.append((self.z_coordinates*c)          *np.cos(twiz) + (self.x_coordinates*c - self.taper*c) *np.sin(twiz))
+            for i in range(len(self.x_coordinates)):
+                self.profile_y.append(self.length_ds[step])
+        return 
+    
+    def center_gravity(self):
+        self.centroids = []
+        for step in range(disc_steps):
+            self.cen_x_list = []
+            self.cen_z_list = []
+            self.segment_list = []
+            for i in range(len(self.x_coordinates)-1):
+                segment_length = np.sqrt((self.profile_x[step][i+1]-self.profile_x[step][i])**2 + (self.profile_z[step][i+1]-self.profile_z[step][i])**2)
+                self.segment_list.append(segment_length)
+                cen_x = self.profile_x[step][i]+(self.profile_x[step][i+1]-self.profile_x[step][i])/2
+                cen_z = self.profile_z[step][i]+(self.profile_z[step][i+1]-self.profile_z[step][i])/2
+                self.cen_x_list.append(cen_x) 
+                self.cen_z_list.append(cen_z)  
+                
+            centroid_x = np.sum(skin_thickness*np.array(self.segment_list)*np.array(self.cen_x_list)) / np.sum(skin_thickness*np.array(self.segment_list)) 
+            centroid_z = np.sum(skin_thickness*np.array(self.segment_list)*np.array(self.cen_z_list)) / np.sum(skin_thickness*np.array(self.segment_list))
+            self.centroids.append([centroid_x,centroid_z])
+        
+#        #Calculate moment of Inertia
+#        ix = 0
+#        iz = 0
+#        ixz = 0
+#        for i in range(len(x_coordinates)-1):
+#            iz += (segment_list[i]*skin_thickness)*(profile_x[step][i]-centroids[step][0])**2
+#            ix += (segment_list[i]*skin_thickness)*(profile_z[step][i]-centroids[step][1])**2
+#            ixz += (segment_list[i]*skin_thickness)*(profile_x[step][i]-centroids[step][0])*(profile_z[step][i]-centroids[step][1])
+#        ################# maybe use as a verification method: take a symmetrical airfoid and see if ixy =0
+#        ix_list.append(ix)
+#        iz_list.append(iz)
+#        ixz_list.append(ixz)
+    
 
-blade = Blade_loading(radius, chord_length, V_flight, rpm, rho, CL, number_segments)
+blade = Blade_loading(radius, chord_length, taper, V_flight, rpm, rho, CL, list_x, list_y, disc_steps)
 blade.lift_distribution()
 blade.shear_distribution()
 blade.moment_distribution()
+blade.twist_taper()
+blade.center_gravity()
+
+for i in range(disc_steps):
+    plt.plot(blade.profile_x[i], blade.profile_z[i])
+
