@@ -10,11 +10,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 radius = 6.
-taper = 0.5
-chord_length = 0.35
+taper = 1
+chord_length = 1
 inc_angle = 0
 twist = 0
-skin_thickness = 0.005
+skin_thickness = 0.01
 V_flight = 0
 rpm = 286
 rho = 0.5
@@ -22,11 +22,11 @@ CL = 0.5
 W_aircraft = 2500
 LDratio = 9
 #shear_center = -0.5*0.5*chordlength
-disc_steps = 10
+disc_steps = 2
 
 
 class Blade_loading:
-    def __init__(self, radius, chord_length, taper, V_flight, rpm, rho, CL, list_x, list_z, disc_steps):
+    def __init__(self, radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_z, disc_steps):
         self.radius = radius
         self.chord_length = chord_length
         self.taper = taper
@@ -87,8 +87,8 @@ class Blade_loading:
         for step in range(disc_steps):
             twiz = self.twisting[step]
             c = self.taperchord[step]
-            self.profile_x.append((self.x_coordinates*c - self.taper*c)*np.cos(twiz) - (self.z_coordinates*c)           *np.sin(twiz)) #maybe remove taper*c 
-            self.profile_z.append((self.z_coordinates*c)          *np.cos(twiz) + (self.x_coordinates*c - self.taper*c) *np.sin(twiz))
+            self.profile_x.append((self.x_coordinates*c)*np.cos(twiz) - (self.z_coordinates*c) *np.sin(twiz)) #maybe remove taper*c 
+            self.profile_z.append((self.z_coordinates*c)*np.cos(twiz) + (self.x_coordinates*c) *np.sin(twiz))
             for i in range(len(self.x_coordinates)):
                 self.profile_y.append(self.length_ds[step])
         return 
@@ -105,33 +105,39 @@ class Blade_loading:
                 cen_x = self.profile_x[step][i]+(self.profile_x[step][i+1]-self.profile_x[step][i])/2
                 cen_z = self.profile_z[step][i]+(self.profile_z[step][i+1]-self.profile_z[step][i])/2
                 self.cen_x_list.append(cen_x) 
-                self.cen_z_list.append(cen_z)  
-                
-            centroid_x = np.sum(skin_thickness*np.array(self.segment_list)*np.array(self.cen_x_list)) / np.sum(skin_thickness*np.array(self.segment_list)) 
+                self.cen_z_list.append(cen_z)
+            centroid_x = np.sum(skin_thickness*np.array(self.segment_list)*np.array(self.cen_x_list)) / np.sum(skin_thickness*np.array(self.segment_list))  # np.sum not the problem 
             centroid_z = np.sum(skin_thickness*np.array(self.segment_list)*np.array(self.cen_z_list)) / np.sum(skin_thickness*np.array(self.segment_list))
             self.centroids.append([centroid_x,centroid_z])
+        print(self.centroids)  
         
-#        #Calculate moment of Inertia
-#        ix = 0
-#        iz = 0
-#        ixz = 0
-#        for i in range(len(x_coordinates)-1):
-#            iz += (segment_list[i]*skin_thickness)*(profile_x[step][i]-centroids[step][0])**2
-#            ix += (segment_list[i]*skin_thickness)*(profile_z[step][i]-centroids[step][1])**2
-#            ixz += (segment_list[i]*skin_thickness)*(profile_x[step][i]-centroids[step][0])*(profile_z[step][i]-centroids[step][1])
-#        ################# maybe use as a verification method: take a symmetrical airfoid and see if ixy =0
-#        ix_list.append(ix)
-#        iz_list.append(iz)
-#        ixz_list.append(ixz)
+    def inertia(self):
+        self.ix_list = []
+        self.iz_list = []
+        self.ixz_list = []
+        for step in range(disc_steps):
+            ix = 0
+            iz = 0
+            ixz = 0
+            for i in range(len(self.x_coordinates)-1):
+                iz += (self.segment_list[i]*skin_thickness)*(self.profile_x[step][i]-self.centroids[step][0])**2
+                ix += (self.segment_list[i]*skin_thickness)*(self.profile_z[step][i]-self.centroids[step][1])**2
+                ixz += (self.segment_list[i]*skin_thickness)*(self.profile_x[step][i]-self.centroids[step][0])*(self.profile_z[step][i]-self.centroids[step][1])
+            self.ix_list.append(ix)
+            self.iz_list.append(iz)
+            self.ixz_list.append(ixz)
+    
     
 
-blade = Blade_loading(radius, chord_length, taper, V_flight, rpm, rho, CL, list_x, list_y, disc_steps)
+blade = Blade_loading(radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_y, disc_steps)
 blade.lift_distribution()
 blade.shear_distribution()
 blade.moment_distribution()
 blade.twist_taper()
 blade.center_gravity()
+#blade.inertia()
 
 for i in range(disc_steps):
     plt.plot(blade.profile_x[i], blade.profile_z[i])
-
+    
+plt.plot(vline(0.49223247))
