@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Dec 16 11:56:23 2018
+Created on Tue Dec 18 14:15:45 2018
 
-@author: Giel
+@author: archi
 """
 
 from airfoil import list_x, list_y
@@ -11,19 +11,22 @@ import matplotlib.pyplot as plt
 
 radius = 6.
 taper = 0.5
-chord_length = 0.4
+chord_length = 1
 inc_angle = 0
 twist = 0
-skin_thickness = 0.05
-V_flight = 50
+skin_thickness = 0.001
+V_flight = 0
 rpm = 286
 rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 200
+disc_steps = 100
 
-
+#one spar at the maximum camber location 
+tspar = 0.005
+xspar = (np.ones(int((len(list_x)- 1)/4)))*((1-0.3)*chord_length)
+zspar = np.linspace(max(list_y), min(z_coordinates),int((len(x_coordinates)-1)/4) )
 
 class Blade_loading:
     def __init__(self, radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_z, LDratio, disc_steps):
@@ -225,8 +228,11 @@ blade.bending_stress()
 blade.shear_stress()
 blade.von_mises()
 
-#for i in range(disc_steps):
-#    plt.plot(blade.profile_x[i], blade.profile_z[i])
+plt.figure()
+for i in range(disc_steps):
+    plt.plot(blade.profile_x[i], blade.profile_z[i])
+    plt.plot(xspar,zspar)
+    plt.show()
     
 for i in range(disc_steps):
     plt.scatter(i, max(blade.tau_list[i]),color='red')
