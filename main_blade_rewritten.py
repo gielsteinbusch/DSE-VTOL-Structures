@@ -2,7 +2,7 @@
 """
 Created on Sun Dec 16 11:56:23 2018
 
-@author: giel
+@author: Giel
 """
 
 from airfoil import list_x, list_y
@@ -11,17 +11,17 @@ import matplotlib.pyplot as plt
 
 radius = 6.
 taper = 0.5
-chord_length = 1
+chord_length = 0.4
 inc_angle = 0
 twist = 0
-skin_thickness = 0.01
-V_flight = 0
+skin_thickness = 0.05
+V_flight = 50
 rpm = 286
 rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 100
+disc_steps = 200
 
 
 class Blade_loading:
