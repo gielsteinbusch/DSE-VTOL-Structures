@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Dec 16 11:56:23 2018
+Created on Tue Dec 18 14:15:45 2018
 
-@author: Giel
+@author: archi
 """
 
 from airfoil import list_x, list_z
@@ -11,17 +11,19 @@ import matplotlib.pyplot as plt
 
 radius = 6.
 taper = 0.5
-chord_length = 0.4
+chord_length = 1
 inc_angle = 0
 twist = 0
-skin_thickness = 0.05
-V_flight = 50
+skin_thickness = 0.001
+V_flight = 0
 rpm = 286
 rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 200
+disc_steps = 5
+
+#one spar at the maximum camber location 
 
 
 class Blade_loading:
@@ -37,6 +39,9 @@ class Blade_loading:
         self.x_coordinates = np.array(list_x)
         self.z_coordinates = np.array(list_z)
         self.LDratio = LDratio
+        self.list_z = list_z
+        self.list_x = list_x
+        
         
     def lift_distribution(self):
         self.x_list = []
@@ -89,6 +94,29 @@ class Blade_loading:
             for i in range(len(self.x_coordinates)):
                 self.profile_y.append(self.length_ds[step])
     
+    # adding spar coordinates
+    def spar_coor(self):
+        self.xspar_list = []
+        self.zspar_list = []
+        self.len_spar = []
+        self.area_spar = []
+        self.cen_spar_z = []
+        self.loc_spar = []
+        for step in range(disc_steps):
+            self.t_spar = 0.005
+            loc_spar_cs = 0.3*self.taperchord[step]            
+            x_spar = list((np.ones(int((len(list_x)- 1)/4)))*(loc_spar_cs))
+            z_spar = list(np.linspace(max(self.profile_z[step]), min(self.profile_z[step]),int((len(self.profile_x[step])-1)/4) ))
+            len_spar_cs = max(z_spar)-min(z_spar)
+            area_spar_cs = len_spar_cs*self.t_spar
+            cen_spar_z_cs = len_spar_cs/2
+            self.xspar_list.append(x_spar)
+            self.zspar_list.append(z_spar)
+            self.loc_spar.append(loc_spar_cs)
+            self.len_spar.append(len_spar_cs)
+            self.area_spar.append(area_spar_cs)
+            self.cen_spar_z.append(cen_spar_z_cs)
+            
     def center_gravity(self):
         self.centroids = []
         self.cen_x_list = []
@@ -105,8 +133,8 @@ class Blade_loading:
                 segment_list_cs.append(segment_length)
                 cen_x_list_cs.append(cen_x) 
                 cen_z_list_cs.append(cen_z)
-            centroid_x = np.sum(skin_thickness*np.array(segment_list_cs)*np.array(cen_x_list_cs)) / np.sum(skin_thickness*np.array(segment_list_cs))  # np.sum not the problem 
-            centroid_z = np.sum(skin_thickness*np.array(segment_list_cs)*np.array(cen_z_list_cs)) / np.sum(skin_thickness*np.array(segment_list_cs))
+            centroid_x = (np.sum(skin_thickness*np.array(segment_list_cs)*np.array(cen_x_list_cs)) + (self.area_spar[step]*self.loc_spar[step]))   / (np.sum(skin_thickness*np.array(segment_list_cs)) + self.area_spar[step])  
+            centroid_z = (np.sum(skin_thickness*np.array(segment_list_cs)*np.array(cen_z_list_cs)) + (self.area_spar[step]*self.cen_spar_z[step])) / (np.sum(skin_thickness*np.array(segment_list_cs)) + self.area_spar[step])
             self.centroids.append([centroid_x,centroid_z])  
             self.cen_x_list.append(cen_x_list_cs)
             self.cen_z_list.append(cen_z_list_cs)
@@ -120,13 +148,17 @@ class Blade_loading:
             ix = 0
             iz = 0
             ixz = 0
+            
             for i in range(len(self.x_coordinates)-1):
-                iz += (self.segment_list[step][i]*skin_thickness)*(self.cen_x_list[step][i]-self.centroids[step][0])**2
-                ix += (self.segment_list[step][i]*skin_thickness)*(self.cen_z_list[step][i]-self.centroids[step][1])**2
-                ixz += (self.segment_list[step][i]*skin_thickness)*(self.cen_x_list[step][i]-self.centroids[step][0])*(self.cen_z_list[step][i]-self.centroids[step][1])
-            self.ix_list.append(ix)
-            self.iz_list.append(iz)
-            self.ixz_list.append(ixz)
+                iz += (self.segment_list[step][i]*skin_thickness)*(self.profile_x[step][i]-self.centroids[step][0])**2
+                ix += (self.segment_list[step][i]*skin_thickness)*(self.profile_z[step][i]-self.centroids[step][1])**2
+                ixz += (self.segment_list[step][i]*skin_thickness)*(self.profile_x[step][i]-self.centroids[step][0])*(self.profile_z[step][i]-self.centroids[step][1])
+            ix_spar = (1/12) * self.t_spar * (self.len_spar[step])**3 + self.area_spar[step] * (self.cen_spar_z[step] - self.centroids[step][1])**2
+            iz_spar = (1/12) * (self.t_spar)**3 * self.len_spar[step] + self.area_spar[step] * (self.loc_spar[step] - self.centroids[step][0])**2
+            ixz_spar = self.area_spar[step] * (self.cen_spar_z[step] - self.centroids[step][1]) * (self.loc_spar[step] - self.centroids[step][0])
+            self.ix_list.append(ix + ix_spar)
+            self.iz_list.append(iz + ix_spar)
+            self.ixz_list.append(ixz) #+ ixz_spar)
     
     def area(self):
         self.area_list = []
@@ -217,6 +249,7 @@ blade.lift_distribution()
 blade.shear_distribution()
 blade.moment_distribution()
 blade.twist_taper()
+blade.spar_coor()
 blade.center_gravity()
 blade.inertia()
 blade.area()
@@ -224,10 +257,14 @@ blade.bending_stress()
 blade.shear_stress()
 blade.von_mises()
 
-#for i in range(disc_steps):
-#    plt.plot(blade.profile_x[i], blade.profile_z[i])
-    
+
 for i in range(disc_steps):
-    plt.scatter(i, max(blade.tau_list[i]),color='red')
-    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
-    plt.scatter(i, max(blade.von_mises[i]),color='green')
+    plt.plot(blade.profile_x[i], blade.profile_z[i])
+    plt.plot(blade.xspar_list[i],blade.zspar_list[i])
+
+    
+#for i in range(disc_steps):
+#    plt.scatter(i, max(blade.tau_list[i]),color='red')
+#    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
+#    plt.scatter(i, max(blade.von_mises[i]),color='green')
+
