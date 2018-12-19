@@ -5,23 +5,23 @@ Created on Sun Dec 16 11:56:23 2018
 @author: Giel
 """
 
-from airfoil import list_x, list_z
+from airfoil import list_x, list_y
 import numpy as np
 import matplotlib.pyplot as plt
 
 radius = 6.
 taper = 0.5
-chord_length = 1
+chord_length = 0.4
 inc_angle = 0
 twist = 0
-skin_thickness = 0.01
+skin_thickness = 0.05
 V_flight = 50
 rpm = 286
 rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 10
+disc_steps = 200
 
 
 
@@ -122,9 +122,9 @@ class Blade_loading:
             iz = 0
             ixz = 0
             for i in range(len(self.x_coordinates)-1):
-                iz += (self.segment_list[step][i]*skin_thickness)*(self.cen_x_list[step][i]-self.centroids[step][0])**2
-                ix += (self.segment_list[step][i]*skin_thickness)*(self.cen_z_list[step][i]-self.centroids[step][1])**2
-                ixz += (self.segment_list[step][i]*skin_thickness)*(self.cen_x_list[step][i]-self.centroids[step][0])*(self.cen_z_list[step][i]-self.centroids[step][1])
+                iz += (self.segment_list[step][i]*skin_thickness)*(self.profile_x[step][i]-self.centroids[step][0])**2
+                ix += (self.segment_list[step][i]*skin_thickness)*(self.profile_z[step][i]-self.centroids[step][1])**2
+                ixz += (self.segment_list[step][i]*skin_thickness)*(self.profile_x[step][i]-self.centroids[step][0])*(self.profile_z[step][i]-self.centroids[step][1])
             self.ix_list.append(ix)
             self.iz_list.append(iz)
             self.ixz_list.append(ixz)
@@ -213,7 +213,7 @@ class Blade_loading:
             self.von_mises.append(von_mises_cs)
 
 
-blade = Blade_loading(radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_z, LDratio, disc_steps)
+blade = Blade_loading(radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_y, LDratio, disc_steps)
 blade.lift_distribution()
 blade.shear_distribution()
 blade.moment_distribution()
