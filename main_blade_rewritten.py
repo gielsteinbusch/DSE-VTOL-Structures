@@ -24,7 +24,6 @@ LDratio = 9
 disc_steps = 200
 
 
-
 class Blade_loading:
     def __init__(self, radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_z, LDratio, disc_steps):
         self.radius = radius

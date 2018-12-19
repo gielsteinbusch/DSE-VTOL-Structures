@@ -38,20 +38,20 @@ x_coordinates = np.array(list_x)
 z_coordinates = np.array(list_y)
 
 ## determine moment distribution (need to do for each blade)
-#lift_list, x_list, totallift = lift_rotorcraft(radius,V_flight, rpm, rho, CL, disc_steps) #will have to change for comparison
-#lift_list3, totallift3 = list(np.array(lift_list)/(3)), totallift/(3)
-#lift_list4, totallift4 = list(np.array(lift_list)/(4)), totallift/(4)
-##print('L3', totallift3, 'L4',totallift4)
-#totalmoment3, shearforce_list3 = shear_diagram(totallift3, lift_list3, x_list) 
-#totalmoment4, shearforce_list4 = shear_diagram(totallift4, lift_list4, x_list)#will have to change for comparison
-#moment_list3 = moment_diagram(lift_list3, x_list, totallift3, totalmoment3) #will have to change for comparison
-#moment_list4 = moment_diagram(lift_list4, x_list, totallift4, totalmoment4)
-#
-#length_ds = np.linspace(0, radius, disc_steps)
-#taperchord3 = np.linspace(chord3, taper*chord3 , disc_steps)
-#taperchord4 = np.linspace(chord4, taper*chord3 , disc_steps)
-#twisting = -1* np.linspace(inc_angle, inc_angle- twist , disc_steps)
-#twisting = np.deg2rad(twisting)
+lift_list, x_list, totallift = lift_rotorcraft(radius,V_flight, rpm, rho, CL, disc_steps) #will have to change for comparison
+lift_list3, totallift3 = list(np.array(lift_list)/(3)), totallift/(3)
+lift_list4, totallift4 = list(np.array(lift_list)/(4)), totallift/(4)
+#print('L3', totallift3, 'L4',totallift4)
+totalmoment3, shearforce_list3 = shear_diagram(totallift3, lift_list3, x_list) 
+totalmoment4, shearforce_list4 = shear_diagram(totallift4, lift_list4, x_list)#will have to change for comparison
+moment_list3 = moment_diagram(lift_list3, x_list, totallift3, totalmoment3) #will have to change for comparison
+moment_list4 = moment_diagram(lift_list4, x_list, totallift4, totalmoment4)
+
+length_ds = np.linspace(0, radius, disc_steps)
+taperchord3 = np.linspace(chord3, taper*chord3 , disc_steps)
+taperchord4 = np.linspace(chord4, taper*chord3 , disc_steps)
+twisting = -1* np.linspace(inc_angle, inc_angle- twist , disc_steps)
+twisting = np.deg2rad(twisting)
 
 ##plottting
 #plt.figure(figsize=(9,9))
@@ -63,37 +63,16 @@ z_coordinates = np.array(list_y)
 
 max_vm3 = Emod
 max_vm4 = Emod
-vmlist = [2*Emod]
-disclist = []
-while max_vm3/vmlist[-1] < 0.95: 
-    vmlist.append(max_vm3)
-    lift_list, x_list, totallift = lift_rotorcraft(radius,V_flight, rpm, rho, CL, disc_steps) #will have to change for comparison
-    lift_list3, totallift3 = list(np.array(lift_list)/(3)), totallift/(3)
-    lift_list4, totallift4 = list(np.array(lift_list)/(4)), totallift/(4)
-    #print('L3', totallift3, 'L4',totallift4)
-    totalmoment3, shearforce_list3 = shear_diagram(totallift3, lift_list3, x_list) 
-    totalmoment4, shearforce_list4 = shear_diagram(totallift4, lift_list4, x_list)#will have to change for comparison
-    moment_list3 = moment_diagram(lift_list3, x_list, totallift3, totalmoment3) #will have to change for comparison
-    moment_list4 = moment_diagram(lift_list4, x_list, totallift4, totalmoment4)
-    
-    length_ds = np.linspace(0, radius, disc_steps)
-    taperchord3 = np.linspace(chord3, taper*chord3 , disc_steps)
-    taperchord4 = np.linspace(chord4, taper*chord3 , disc_steps)
-    twisting = -1* np.linspace(inc_angle, inc_angle- twist , disc_steps)
-    twisting = np.deg2rad(twisting)
 
+while max_vm3 >  Ucomp: 
     #calculate for 3 
     profile_x3, profile_y3, profile_z3, A_list3, ix_list3, iz_list3, ixz_list3, colourstress3, base_shear3, q0_list3 = stress_analysis(x_coordinates, z_coordinates, taper, LDratio, taperchord3,length_ds,twisting, totalmoment3, shearforce_list3, moment_list3, skin_thickness, shear_center3)
     shear_flow3, shear_stress3 = total_shear(taperchord3, base_shear3, q0_list3, skin_thickness)
     vonmises3, max_vm3 = von_mises(taperchord3, colourstress3, shear_stress3, x_coordinates)
-    
-    disclist.append(disc_steps)
-    disc_steps = disc_steps + 10
-    print(max_vm3/vmlist[-1], max_vm3)
+    skin_thickness = skin_thickness + 0.0001
     #print('triple_skin:',skin_thickness, 'max:', max_vm3)
-    t3 = skin_thickness
-
-print(disc_steps)
+t3 = skin_thickness
+print(t3)
 
 #skin_thickness = 0.0005
 #
@@ -105,6 +84,6 @@ print(disc_steps)
 #    skin_thickness = skin_thickness + 0.0001 
 #    print('quad_skin:',skin_thickness, 'max:' , max_vm4)
 #t4 = skin_thickness
-#print(t4)
+print(t4)
 
 
