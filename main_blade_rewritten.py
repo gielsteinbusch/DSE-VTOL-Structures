@@ -11,17 +11,17 @@ import matplotlib.pyplot as plt
 
 radius = 6.
 taper = 0.5
-chord_length = 0.4
+chord_length = 1
 inc_angle = 0
 twist = 0
-skin_thickness = 0.05
+skin_thickness = 0.01
 V_flight = 50
 rpm = 286
 rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 200
+disc_steps = 10
 
 
 class Blade_loading:
