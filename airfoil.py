@@ -10,7 +10,7 @@ chordlength = 1.
 filename = 'airfoil2312.txt' 
 fin = open(filename,'r')
 line = fin.readlines()
-list_y = []
+list_z = []
 list_x = []
 
 newlist = []
@@ -29,5 +29,5 @@ for n in range(len(newlist)):
         list_x.append(float(newlist[n])*chordlength)
     else:
         newlist[n] = newlist[n].replace('\n','')
-        list_y.append(float(newlist[n])*chordlength)
+        list_z.append(float(newlist[n])*chordlength)
         
