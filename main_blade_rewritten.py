@@ -8,21 +8,21 @@ Created on Sun Dec 16 11:56:23 2018
 from airfoil import list_x, list_z
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 radius = 6.
 taper = 0.5
 chord_length = 1
 inc_angle = 0
 twist = 0
-skin_thickness = 0.01
-V_flight = 50
+skin_thickness = 0.005
+V_flight = 0
 rpm = 286
 rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 10
-
+disc_steps = 100
 
 class Blade_loading:
     def __init__(self, radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_z, LDratio, disc_steps):
@@ -152,15 +152,15 @@ class Blade_loading:
         for step in range(disc_steps):
             stress_x_list_cs = []
             stress_z_list_cs = []
-            sigma_list_cs = []
+            sigma_list_cs = [1]
             moment_x = self.moment_list[step]
             moment_z = self.moment_list[step]/LDratio
             ix = self.ix_list[step]
             iz = self.iz_list[step]
             ixz = self.ixz_list[step]
             for i in range(len(self.x_coordinates)-1):
-                stress_x = ((iz*moment_x - ixz*moment_z) / (ix*iz - ixz**2)) * self.cen_z_list[step][i]
-                stress_z = ((ix*moment_z - ixz*moment_x) / (ix*iz - ixz**2)) * self.cen_x_list[step][i]
+                stress_x = ((iz*moment_x - ixz*moment_z) / (ix*iz - ixz**2)) * (self.cen_z_list[step][i] - self.centroids[step][1])
+                stress_z = ((ix*moment_z - ixz*moment_x) / (ix*iz - ixz**2)) * (self.cen_x_list[step][i] - self.centroids[step][0])
                 sigma = stress_x + stress_z
                 stress_x_list_cs.append(stress_x)
                 stress_z_list_cs.append(stress_z)
@@ -182,7 +182,7 @@ class Blade_loading:
             qx_coef = -(Sx*ix - Sz*ixz) / (ix*iz - ixz**2)
             qz_coef = -(Sz*iz - Sx*ixz) / (ix*iz - ixz**2)
             qb = 0
-            qb_list_cs = []
+            qb_list_cs = [1]
             internal_moment = 0
             for i in range(len(self.x_coordinates)-1):
                 qbx0 = qx_coef * skin_thickness * (self.profile_x[step][i+1] - self.centroids[step][0]) * self.segment_list[step][i]
@@ -226,7 +226,19 @@ blade.von_mises()
 
 #for i in range(disc_steps):
 #    plt.plot(blade.profile_x[i], blade.profile_z[i])
-    
+
+#plotting bend stress
+bend = []
+for step in range(blade.disc_steps):
+    for x in blade.sigma_list[step]:
+        bend.append(x)
+bend = np.array(bend)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection ='3d')    
+ax.scatter(blade.profile_x, blade.profile_y, blade.profile_z, c = bend, cmap=plt.jet())
+plt.show()
+
 for i in range(disc_steps):
     plt.scatter(i, max(blade.tau_list[i]),color='red')
     plt.scatter(i, max(blade.sigma_list[i]),color='blue')

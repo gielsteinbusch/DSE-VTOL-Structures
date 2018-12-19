@@ -14,7 +14,7 @@ taper = 0.5
 chord_length = 1
 inc_angle = 0
 twist = 0
-skin_thickness = 0.001
+skin_thickness = 0.03
 V_flight = 0
 rpm = 286
 rho = 0.5
@@ -103,7 +103,7 @@ class Blade_loading:
         self.cen_spar_z = []
         self.loc_spar = []
         for step in range(disc_steps):
-            self.t_spar = 0.005
+            self.t_spar = 0.05
             loc_spar_cs = 0.3*self.taperchord[step]            
             x_spar = list((np.ones(int((len(list_x)- 1)/4)))*(loc_spar_cs))
             z_spar = list(np.linspace(max(self.profile_z[step]), min(self.profile_z[step]),int((len(self.profile_x[step])-1)/4) ))
@@ -116,6 +116,52 @@ class Blade_loading:
             self.len_spar.append(len_spar_cs)
             self.area_spar.append(area_spar_cs)
             self.cen_spar_z.append(cen_spar_z_cs)
+            
+    def profile_new(self):
+        self.profile1_x = []
+        self.profile2_x = []
+        self.profile1_z = []
+        self.profile2_z = []
+        self.segment1_list = []
+        self.segment2_list = []
+        for step in range(disc_steps):
+            a = float(self.xspar_list[step][0])
+            profile1_x_cs = []
+            profile2_x_cs = []
+            profile1_z_cs = []
+            profile2_z_cs = []
+            for c in range(len(self.profile_x[step])):
+                if self.profile_x[step][c] > a:
+                    profile1_x_cs.append(self.profile_x[step][c])
+                    profile1_z_cs.append(self.profile_z[step][c])
+                else: 
+                    if profile1_x_cs[-1] != a:
+                        profile2_x_cs.append(profile1_x_cs[-1])
+                        profile2_z_cs.append(profile1_z_cs[-1])
+                        for i in range(len(self.xspar_list[step])):
+                            profile1_x_cs.append(self.xspar_list[step][i])
+                            profile1_z_cs.append(self.zspar_list[step][i])
+                    profile2_x_cs.append(self.profile_x[step][c])
+                    profile2_z_cs.append(self.profile_z[step][c])
+            for i in range(1,len(self.xspar_list[step])+1):
+                profile2_x_cs.append(self.xspar_list[step][-i])
+                profile2_z_cs.append(self.zspar_list[step][-i])
+            self.profile1_x.append(profile1_x_cs)
+            self.profile2_x.append(profile2_x_cs)
+            self.profile1_z.append(profile1_z_cs)
+            self.profile2_z.append(profile2_z_cs)
+            segment1_list_cs = []
+            segment2_list_cs = []
+            for i in range(len(profile1_x_cs)-1):
+                segment_length1 = np.sqrt((profile1_x_cs[i+1]-profile1_x_cs[i])**2 + (profile1_z_cs[i+1]-profile1_z_cs[i])**2)
+                segment1_list_cs.append(segment_length1)
+            for i in range(len(profile2_x_cs)-1):
+                segment_length2 = np.sqrt((profile2_x_cs[i+1]-profile2_x_cs[i])**2 + (profile2_z_cs[i+1]-profile2_z_cs[i])**2)
+                segment2_list_cs.append(segment_length2)
+            self.segment1_list.append(segment1_list_cs)
+            self.segment2_list.append(segment2_list_cs)
+            
+            
             
     def center_gravity(self):
         self.centroids = []
@@ -148,7 +194,6 @@ class Blade_loading:
             ix = 0
             iz = 0
             ixz = 0
-            
             for i in range(len(self.x_coordinates)-1):
                 iz += (self.segment_list[step][i]*skin_thickness)*(self.cen_x_list[step][i]-self.centroids[step][0])**2
                 ix += (self.segment_list[step][i]*skin_thickness)*(self.cen_z_list[step][i]-self.centroids[step][1])**2
@@ -197,54 +242,57 @@ class Blade_loading:
                 stress_x_list_cs.append(stress_x)
                 stress_z_list_cs.append(stress_z)
                 sigma_list_cs.append(sigma)
-            for i in range(len(self.xspar_list)):
+            for i in range(len(self.xspar_list[step])):
                 stress_x_spar =  ((iz*moment_x - ixz*moment_z) / (ix*iz - ixz**2)) * (self.zspar_list[step][i] - self.centroids[step][1] )
                 stress_z_spar = ((ix*moment_z - ixz*moment_x) / (ix*iz - ixz**2)) * (self.xspar_list[step][i] - self.centroids[step][0] ) 
+                sigma_spar = stress_x_spar + stress_z_spar
+                sigma_list_cs.append(sigma_spar)
             self.stress_x_list.append(stress_x_list_cs)  
             self.stress_z_list.append(stress_z_list_cs)
             self.sigma_list.append(sigma_list_cs)
-    
-    def shear_stress(self):
-        self.tau_list = []
-        self.qb_list = []
-        self.total_shear_list = []
-        for step in range(disc_steps):
-            ix = self.ix_list[step]
-            iz = self.iz_list[step]
-            ixz = self.ixz_list[step]
-            Sz = self.shearforce_list[step]
-            Sx = Sz / LDratio
-            qx_coef = -(Sx*ix - Sz*ixz) / (ix*iz - ixz**2)
-            qz_coef = -(Sz*iz - Sx*ixz) / (ix*iz - ixz**2)
-            qb = 0
-            qb_list_cs = []
-            internal_moment = 0
-            for i in range(len(self.x_coordinates)-1):
-                qbx0 = qx_coef * skin_thickness * (self.profile_x[step][i+1] - self.centroids[step][0]) * self.segment_list[step][i]
-                qbz0 = qz_coef * skin_thickness * (self.profile_z[step][i+1] - self.centroids[step][1]) * self.segment_list[step][i]
-                qb += (qbx0 + qbz0)
-                qb_list_cs.append(qb)
-                
-                qbx = ((self.profile_x[step][i+1] - self.profile_x[step][i]) / self.segment_list[step][i]) *qb
-                qbz = ((self.profile_z[step][i+1] - self.profile_z[step][i]) / self.segment_list[step][i]) *qb
-                moment_arm_x = self.profile_x[step][i] - 0.25*self.taperchord[step]
-                moment_arm_z = self.profile_z[step][i] 
-                internal_moment += (qbx * moment_arm_x + qbz * moment_arm_z) * self.segment_list[step][i]
-            q0 = internal_moment / ( -2 * self.area_list[step])
-            self.qb_list.append(qb_list_cs)
-            total_shear_list_cs = [x + q0 for x in qb_list_cs]
-            self.total_shear_list.append(total_shear_list_cs)
-            tau_list_cs = [x/skin_thickness for x in total_shear_list_cs]
-            self.tau_list.append(tau_list_cs)
             
-    def von_mises(self):
-        self.von_mises = []
-        for step in range(disc_steps):
-            von_mises_cs = []
-            for i in range(len(self.x_coordinates)-1):
-                von_mises_segment = np.sqrt(self.sigma_list[step][i]**2 + 3*(self.tau_list[step][i])**2)
-                von_mises_cs.append(von_mises_segment)
-            self.von_mises.append(von_mises_cs)
+    
+#    def shear_stress(self):
+#        self.tau_list = []
+#        self.qb_list = []
+#        self.total_shear_list = []
+#        for step in range(disc_steps):
+#            ix = self.ix_list[step]
+#            iz = self.iz_list[step]
+#            ixz = self.ixz_list[step]
+#            Sz = self.shearforce_list[step]
+#            Sx = Sz / LDratio
+#            qx_coef = -(Sx*ix - Sz*ixz) / (ix*iz - ixz**2)
+#            qz_coef = -(Sz*iz - Sx*ixz) / (ix*iz - ixz**2)
+#            qb = 0
+#            qb_list_cs = []
+#            internal_moment = 0
+#            for i in range(len(self.x_coordinates)-1):
+#                qbx0 = qx_coef * skin_thickness * (self.profile_x[step][i+1] - self.centroids[step][0]) * self.segment_list[step][i]
+#                qbz0 = qz_coef * skin_thickness * (self.profile_z[step][i+1] - self.centroids[step][1]) * self.segment_list[step][i]
+#                qb += (qbx0 + qbz0)
+#                qb_list_cs.append(qb)
+#                
+#                qbx = ((self.profile_x[step][i+1] - self.profile_x[step][i]) / self.segment_list[step][i]) *qb
+#                qbz = ((self.profile_z[step][i+1] - self.profile_z[step][i]) / self.segment_list[step][i]) *qb
+#                moment_arm_x = self.profile_x[step][i] - 0.25*self.taperchord[step]
+#                moment_arm_z = self.profile_z[step][i] 
+#                internal_moment += (qbx * moment_arm_x + qbz * moment_arm_z) * self.segment_list[step][i]
+#            q0 = internal_moment / ( -2 * self.area_list[step])
+#            self.qb_list.append(qb_list_cs)
+#            total_shear_list_cs = [x + q0 for x in qb_list_cs]
+#            self.total_shear_list.append(total_shear_list_cs)
+#            tau_list_cs = [x/skin_thickness for x in total_shear_list_cs]
+#            self.tau_list.append(tau_list_cs)
+#            
+#    def von_mises(self):
+#        self.von_mises = []
+#        for step in range(disc_steps):
+#            von_mises_cs = []
+#            for i in range(len(self.x_coordinates)-1):
+#                von_mises_segment = np.sqrt(self.sigma_list[step][i]**2 + 3*(self.tau_list[step][i])**2)
+#                von_mises_cs.append(von_mises_segment)
+#            self.von_mises.append(von_mises_cs)
 
 
 blade = Blade_loading(radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_z, LDratio, disc_steps)
@@ -253,21 +301,24 @@ blade.shear_distribution()
 blade.moment_distribution()
 blade.twist_taper()
 blade.spar_coor()
+blade.profile_new()
 blade.center_gravity()
 blade.inertia()
 blade.area()
 blade.bending_stress()
-blade.shear_stress()
-blade.von_mises()
+#blade.shear_stress()
+#blade.von_mises()
 
 
 for i in range(disc_steps):
-    plt.plot(blade.profile_x[i], blade.profile_z[i])
-    plt.plot(blade.xspar_list[i],blade.zspar_list[i])
-
+    plt.plot(blade.profile1_x[i], blade.profile1_z[i])
+    plt.plot(blade.profile2_x[i], blade.profile2_z[i])   
     
+#    plt.plot(blade.xspar_list[i],blade.zspar_list[i])
+
+#plt.figure()    
 #for i in range(disc_steps):
 #    plt.scatter(i, max(blade.tau_list[i]),color='red')
 #    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
 #    plt.scatter(i, max(blade.von_mises[i]),color='green')
-
+#plt.show()
