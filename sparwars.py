@@ -150,15 +150,15 @@ class Blade_loading:
             ixz = 0
             
             for i in range(len(self.x_coordinates)-1):
-                iz += (self.segment_list[step][i]*skin_thickness)*(self.profile_x[step][i]-self.centroids[step][0])**2
-                ix += (self.segment_list[step][i]*skin_thickness)*(self.profile_z[step][i]-self.centroids[step][1])**2
-                ixz += (self.segment_list[step][i]*skin_thickness)*(self.profile_x[step][i]-self.centroids[step][0])*(self.profile_z[step][i]-self.centroids[step][1])
+                iz += (self.segment_list[step][i]*skin_thickness)*(self.cen_x_list[step][i]-self.centroids[step][0])**2
+                ix += (self.segment_list[step][i]*skin_thickness)*(self.cen_z_list[step][i]-self.centroids[step][1])**2
+                ixz += (self.segment_list[step][i]*skin_thickness)*(self.cen_x_list[step][i]-self.centroids[step][0])*(self.cen_z_list[step][i]-self.centroids[step][1])
             ix_spar = (1/12) * self.t_spar * (self.len_spar[step])**3 + self.area_spar[step] * (self.cen_spar_z[step] - self.centroids[step][1])**2
             iz_spar = (1/12) * (self.t_spar)**3 * self.len_spar[step] + self.area_spar[step] * (self.loc_spar[step] - self.centroids[step][0])**2
             ixz_spar = self.area_spar[step] * (self.cen_spar_z[step] - self.centroids[step][1]) * (self.loc_spar[step] - self.centroids[step][0])
             self.ix_list.append(ix + ix_spar)
             self.iz_list.append(iz + ix_spar)
-            self.ixz_list.append(ixz) #+ ixz_spar)
+            self.ixz_list.append(ixz + ixz_spar)
     
     def area(self):
         self.area_list = []
@@ -191,12 +191,15 @@ class Blade_loading:
             iz = self.iz_list[step]
             ixz = self.ixz_list[step]
             for i in range(len(self.x_coordinates)-1):
-                stress_x = ((iz*moment_x - ixz*moment_z) / (ix*iz - ixz**2)) * self.cen_z_list[step][i]
-                stress_z = ((ix*moment_z - ixz*moment_x) / (ix*iz - ixz**2)) * self.cen_x_list[step][i]
+                stress_x = ((iz*moment_x - ixz*moment_z) / (ix*iz - ixz**2)) * (self.cen_z_list[step][i] - self.centroids[step][1] ) 
+                stress_z = ((ix*moment_z - ixz*moment_x) / (ix*iz - ixz**2)) * (self.cen_x_list[step][i] - self.centroids[step][0] ) 
                 sigma = stress_x + stress_z
                 stress_x_list_cs.append(stress_x)
                 stress_z_list_cs.append(stress_z)
                 sigma_list_cs.append(sigma)
+            for i in range(len(self.xspar_list)):
+                stress_x_spar =  ((iz*moment_x - ixz*moment_z) / (ix*iz - ixz**2)) * (self.zspar_list[step][i] - self.centroids[step][1] )
+                stress_z_spar = ((ix*moment_z - ixz*moment_x) / (ix*iz - ixz**2)) * (self.xspar_list[step][i] - self.centroids[step][0] ) 
             self.stress_x_list.append(stress_x_list_cs)  
             self.stress_z_list.append(stress_z_list_cs)
             self.sigma_list.append(sigma_list_cs)
