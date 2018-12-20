@@ -21,7 +21,7 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 5
+disc_steps = 10
 
 #one spar at the maximum camber location 
 
@@ -82,15 +82,14 @@ class Blade_loading:
             moment = Mtotm - Mfres + Mlif
             self.moment_list.append(moment)
     
-    def twist_taper(self):
+    def profile(self):
         self.profile_x = []
         self.profile_z = []
         self.profile_y = []
         for step in range(disc_steps):
-            twiz = self.twisting[step]
             c = self.taperchord[step]
-            self.profile_x.append((self.x_coordinates*c)*np.cos(twiz) - (self.z_coordinates*c) *np.sin(twiz)) #maybe remove taper*c 
-            self.profile_z.append((self.z_coordinates*c)*np.cos(twiz) + (self.x_coordinates*c) *np.sin(twiz))
+            self.profile_x.append(self.x_coordinates*c)  
+            self.profile_z.append(self.z_coordinates*c) 
             for i in range(len(self.x_coordinates)):
                 self.profile_y.append(self.length_ds[step])
     
@@ -160,8 +159,28 @@ class Blade_loading:
                 segment2_list_cs.append(segment_length2)
             self.segment1_list.append(segment1_list_cs)
             self.segment2_list.append(segment2_list_cs)
-            
-            
+
+    def twist(self):
+        self.profile3_x = []
+        self.profile4_x = []
+        self.profile3_z = []
+        self.profile4_z = []
+        for step in range(disc_steps):
+            self.profile3_x_cs = []
+            self.profile4_x_cs = []
+            self.profile3_z_cs = []
+            self.profile4_z_cs = []
+            twiz = self.twisting[step]
+            for i in range(len(self.profile1_x[step])):
+                self.profile3_x_cs.append(self.profile1_x[step][i]*np.cos(twiz) - self.profile1_z[step][i]*np.sin(twiz)) 
+                self.profile3_z_cs.append(self.profile1_z[step][i]*np.cos(twiz) + self.profile1_x[step][i]*np.sin(twiz))
+            for i in range(len(self.profile2_x[step])):
+                self.profile4_x_cs.append(self.profile2_x[step][i]*np.cos(twiz) - self.profile2_z[step][i]*np.sin(twiz)) 
+                self.profile4_z_cs.append(self.profile2_z[step][i]*np.cos(twiz) + self.profile2_x[step][i]*np.sin(twiz))
+            self.profile3_x.append(self.profile3_x_cs)
+            self.profile3_z.append(self.profile3_z_cs)
+            self.profile4_x.append(self.profile4_x_cs)
+            self.profile4_z.append(self.profile4_z_cs)
             
     def center_gravity(self):
         self.centroids = []
@@ -202,7 +221,7 @@ class Blade_loading:
             iz_spar = (1/12) * (self.t_spar)**3 * self.len_spar[step] + self.area_spar[step] * (self.loc_spar[step] - self.centroids[step][0])**2
             ixz_spar = self.area_spar[step] * (self.cen_spar_z[step] - self.centroids[step][1]) * (self.loc_spar[step] - self.centroids[step][0])
             self.ix_list.append(ix + ix_spar)
-            self.iz_list.append(iz + ix_spar)
+            self.iz_list.append(iz + iz_spar)
             self.ixz_list.append(ixz + ixz_spar)
     
     def area(self):
@@ -299,9 +318,10 @@ blade = Blade_loading(radius, chord_length, taper, skin_thickness, V_flight, rpm
 blade.lift_distribution()
 blade.shear_distribution()
 blade.moment_distribution()
-blade.twist_taper()
+blade.profile()
 blade.spar_coor()
 blade.profile_new()
+blade.twist()
 blade.center_gravity()
 blade.inertia()
 blade.area()
@@ -311,8 +331,8 @@ blade.bending_stress()
 
 
 for i in range(disc_steps):
-    plt.plot(blade.profile1_x[i], blade.profile1_z[i])
-    plt.plot(blade.profile2_x[i], blade.profile2_z[i])   
+    plt.plot(blade.profile3_x[i], blade.profile3_z[i])
+    plt.plot(blade.profile4_x[i], blade.profile4_z[i])   
     
 #    plt.plot(blade.xspar_list[i],blade.zspar_list[i])
 
