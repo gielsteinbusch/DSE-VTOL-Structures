@@ -13,7 +13,7 @@ from mpl_toolkits.mplot3d import Axes3D
 radius = 6.
 taper = 0.5
 chord_length = 1
-inc_angle = 90
+inc_angle = 0
 twist = 0
 skin_thickness = 0.005
 V_flight = 0
@@ -22,7 +22,7 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 5
+disc_steps = 10
 
 class Blade_loading:
     def __init__(self, radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_z, LDratio, disc_steps):
@@ -227,19 +227,19 @@ blade.von_mises()
 for i in range(disc_steps):
     plt.plot(blade.profile_x[i], blade.profile_z[i])
 
-##plotting bend stress
-#bend = []
-#for step in range(blade.disc_steps):
-#    for x in blade.sigma_list[step]:
-#        bend.append(x)
-#bend = np.array(bend)
-#
-#fig = plt.figure()
-#ax = fig.add_subplot(111, projection ='3d')    
-#ax.scatter(blade.profile_x, blade.profile_y, blade.profile_z, c = bend, cmap=plt.jet())
-#plt.show()
-#
-#for i in range(disc_steps):
-#    plt.scatter(i, max(blade.tau_list[i]),color='red')
-#    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
-#    plt.scatter(i, max(blade.von_mises[i]),color='green')
+#plotting bend stress
+bend = []
+for step in range(blade.disc_steps):
+    for x in blade.sigma_list[step]:
+        bend.append(x)
+bend = np.array(bend)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection ='3d')    
+ax.scatter(blade.profile_x, blade.profile_y, blade.profile_z, c = bend, cmap=plt.jet())
+plt.show()
+
+for i in range(disc_steps):
+    plt.scatter(i, max(blade.tau_list[i]),color='red')
+    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
+    plt.scatter(i, max(blade.von_mises[i]),color='green')

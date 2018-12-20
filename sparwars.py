@@ -14,7 +14,7 @@ taper = 0.5
 chord_length = 1
 inc_angle = 0
 twist = 0
-skin_thickness = 0.03
+skin_thickness = 0.01
 V_flight = 0
 rpm = 286
 rho = 0.5
@@ -102,7 +102,7 @@ class Blade_loading:
         self.cen_spar_z = []
         self.loc_spar = []
         for step in range(disc_steps):
-            self.t_spar = 0.05
+            self.t_spar = 0.02
             loc_spar_cs = 0.3*self.taperchord[step]            
             x_spar = list((np.ones(int((len(list_x)- 1)/4)))*(loc_spar_cs))
             z_spar = list(np.linspace(max(self.profile_z[step]), min(self.profile_z[step]),int((len(self.profile_x[step])-1)/4) ))
@@ -336,9 +336,9 @@ for i in range(disc_steps):
     
 #    plt.plot(blade.xspar_list[i],blade.zspar_list[i])
 
-#plt.figure()    
-#for i in range(disc_steps):
+plt.figure()    
+for i in range(disc_steps):
 #    plt.scatter(i, max(blade.tau_list[i]),color='red')
-#    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
+    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
 #    plt.scatter(i, max(blade.von_mises[i]),color='green')
-#plt.show()
+plt.show()
