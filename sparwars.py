@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 radius = 6.
 taper = 0.5
 chord_length = 1
-inc_angle = 5
-twist = 10
+inc_angle = 40
+twist = 45
 skin_thickness = 0.01
 V_flight = 0
 rpm = 286
