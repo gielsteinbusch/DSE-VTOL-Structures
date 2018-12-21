@@ -291,6 +291,10 @@ class Blade_loading:
         self.qb_list3 = []
         self.qb_list4 = []
         self.total_shear_list = []
+        self.intM3_list = []
+        self.red_shear3 = []
+        self.intM4_list = []
+        self.red_shear4 = []
         for step in range(disc_steps):
             ix = self.ix_list[step]
             iz = self.iz_list[step]
@@ -301,7 +305,6 @@ class Blade_loading:
             qz_coef = -(Sz*iz - Sx*ixz) / (ix*iz - ixz**2)
             qb3 = 0
             qb3_list_cs = []
-            internal_moment = 0
             for i in range(self.idxtop2 +1 ):
                 qbx0 = qx_coef * skin_thickness * (self.profile3_x[step][i+1] - self.centroids[step][0]) * self.segment1_list[step][i]
                 qbz0 = qz_coef * skin_thickness * (self.profile3_z[step][i+1] - self.centroids[step][1]) * self.segment1_list[step][i]
@@ -331,10 +334,24 @@ class Blade_loading:
                 qb4 += (qbx0 + qbz0)
                 qb4_list_cs.append(qb4)
             self.qb_list4.append(qb4_list_cs)
+            Mint3 = 0 
             for i in range( len(self.profile3_x)-1):
                  qbx3 = ((self.profile3_x[step][i+1] - self.profile3_x[step][i]) / self.segment1_list[step][i]) *self.qb_list3[step][i]
                  qbz3 = ((self.profile3_z[step][i+1] - self.profile3_z[step][i]) / self.segment1_list[step][i]) *self.qb_list3[step][i]
-                 m3x = qbx3 * self.segment1_list[step][i] *  (self.profile3_x[step][i] - self.xspar_list[step][self.idxbottom2])
+                 m3x = qbx3 * self.segment1_list[step][i] *  (self.profile3_x[step][i] - self.profile3_x[step][self.idxbottom2])
+                 m3z = qbz3 * self.segment1_list[step][i] * (self.profile3_z[step][i] - self.profile3_z[step][self.idxbottom2])
+                 Mint3 += (m3x + m3z)
+            self.intM3_list.append(Mint3)
+            self.red_shear3.append(Mint3/(-2*self.area_list[step][1]))
+            Mint4 = 0 
+            for i in range(len(self.profile4_x) -1 ):
+                qbx4 = ((self.profile4_x[step][i+1] - self.profile4_x[step][i]) / self.segment2_list[step][i]) *self.qb_list4[step][i]
+                qbz4 = ((self.profile4_z[step][i+1] - self.profile4_z[step][i]) / self.segment2_list[step][i]) *self.qb_list4[step][i]
+                m4x = qbx4 * self.segment2_list[step][i] *  (self.profile4_x[step][i] - self.profile4_x[step][len(self.profile4_x[0]) - len(self.xspar_list[0])])
+                m4z = qbz4 * self.segment2_list[step][i] * (self.profile4_z[step][i] - self.profile4_z[step][len(self.profile4_x[0]) - len(self.xspar_list[0])])
+                Mint4 += (m4x + m4z)
+            self.intM4_list.append(Mint4)
+            self.red_shear4.append(Mint4/(-2*self.area_list[step][2]))
             #for i in range(len(self.profile4_x) -1 ):
                 #qbx0 = qx_coef * skin_thickness
                 #qbx = ((self.profile_x[step][i+1] - self.profile_x[step][i]) / self.segment_list[step][i]) *qb
