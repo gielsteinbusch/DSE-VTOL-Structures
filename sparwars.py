@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 radius = 6.
 taper = 0.5
 chord_length = 1
-inc_angle = 40
-twist = 45
+inc_angle = 10
+twist = 20
 skin_thickness = 0.01
 V_flight = 0
 rpm = 286
@@ -21,7 +21,8 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 2
+disc_steps = 5
+G = 28e9 #needs to be changed for the material  
 
 #one spar at the maximum camber location 
 
@@ -328,7 +329,7 @@ class Blade_loading:
                 qbz0 = qz_coef * skin_thickness * (self.profile4_z[step][i+1] - self.centroids[step][1]) * self.segment2_list[step][i]
                 qb4 += (qbx0 + qbz0)
                 qb4_list_cs.append(qb4)
-            for i in range(len(self.profile4_x[0]) - len(self.xspar_list[0]), len(self.profile4_x[0]) - len(self.xspar_list[0]) + len(self.xspar_list[0]) -1):
+            for i in range(len(self.profile4_x[0]) - len(self.xspar_list[0]), len(self.profile4_x[0]) -1):
                 qbx0 = qx_coef * self.t_spar * (self.profile4_x[step][i+1] - self.centroids[step][0]) * self.segment2_list[step][i]
                 qbz0 = qz_coef * self.t_spar * (self.profile4_z[step][i+1] - self.centroids[step][1]) * self.segment2_list[step][i]
                 qb4 += (qbx0 + qbz0)
@@ -352,19 +353,14 @@ class Blade_loading:
                 Mint4 += (m4x + m4z)
             self.intM4_list.append(Mint4)
             self.red_shear4.append(Mint4/(-2*self.area_list[step][2]))
-            #for i in range(len(self.profile4_x) -1 ):
-                #qbx0 = qx_coef * skin_thickness
-                #qbx = ((self.profile_x[step][i+1] - self.profile_x[step][i]) / self.segment_list[step][i]) *qb
-                #qbz = ((self.profile_z[step][i+1] - self.profile_z[step][i]) / self.segment_list[step][i]) *qb
-                #moment_arm_x = self.profile_x[step][i] - 0.25*self.taperchord[step]
-                #moment_arm_z = self.profile_z[step][i] 
-                #internal_moment += (qbx * moment_arm_x + qbz * moment_arm_z) * self.segment_list[step][i]
-            #q0 = internal_moment / ( -2 * self.area_list[step])
-            #self.qb_list.append(qb_list_cs)
-            #total_shear_list_cs = [x + q0 for x in qb_list_cs]
-            #self.total_shear_list.append(total_shear_list_cs)
-            #tau_list_cs = [x/skin_thickness for x in total_shear_list_cs]
-            #self.tau_list.append(tau_list_cs)
+            self.qR3 = []
+            #for q in qb_list3[step]: 
+                #self.qR3.append(q + red_shear3[step])
+    
+    def max_bend(self): 
+        self.des_list = []
+        for step in range(disc_steps):
+            self.des_list.append([np.max(self.sigma_list[step]), np.min(self.sigma_list[step])])
 #            
 #    def von_mises(self):
 #        self.von_mises = []
@@ -389,6 +385,7 @@ blade.inertia()
 blade.area()
 blade.bending_stress()
 blade.shear_stress()
+blade.max_bend()
 #blade.von_mises()
 
 
