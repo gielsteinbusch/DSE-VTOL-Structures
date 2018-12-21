@@ -36,7 +36,7 @@ twisting = np.deg2rad(-1* np.linspace(inc_angle, inc_angle- twist , disc_steps))
 x_coordinates = np.array(list_x)
 z_coordinates = np.array(list_z)
 
-def lift(y_coor, V_flight, rho,CL,m_seg): 
+def lift(y_coor, V_flight, rho, CL, m_seg): 
     lift_list = []
     F_cen_list = []
     S_list = []
@@ -50,21 +50,25 @@ def lift(y_coor, V_flight, rho,CL,m_seg):
         lift_list.append(L)
      
         F_cen =  m_seg[step] * V_blade**2 / (y_coor[step] + 1/2 * w_segment)
-        print(m_seg[step]*V_blade)
         F_cen_list.append(F_cen)
     return lift_list, F_cen_list
 
 lift_list, F_cen_list = lift(y_coor, V_flight, rho,CL, m_seg)
 
-#def moment(lift_list, lift_points): 
-#    ext_moment = []
-#    for i in range(disc_steps -1 ):
-#        moment = lift_list[i]*lift_points[i]
-#        ext_moment.append(moment)
-#    res_moment = sum(ext_moment)
-#    return ext_moment, res_moment 
+def moment(lift_list, y_coor): 
+    moment_list = []
+    w_segment = y_coor[1]-y_coor[0]
+    lift_points = y_coor + 2/3 * w_segment
+    for step in range(disc_steps):
+        moment = 0
+        for force in range(len(lift_list)):
+            moment += lift_list[force] * (lift_points[force] - y_coor[step])
+            print(lift_points[force] - y_coor[step])
+        moment_list.append(moment)
+    return moment_list
+        
 
-#print(moment(lift_list,lift_points))
+print(moment(lift_list,y_coor))
         
 
 
