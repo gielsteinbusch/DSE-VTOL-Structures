@@ -17,7 +17,7 @@ cabin_width = 1.5
 door_height = 1.2 
 no_step_door = int((cabin_height-door_height)/cabin_height * disc_cs)
 
-#building the cabin as a box 
+#building the cabin as a box ----------------------------------------------- wanna improve 
 xdis = np.linspace(0,cabin_len,disc_cs)
 zdis1 = []
 ydis1 = []
@@ -61,9 +61,11 @@ for x in xdis:
     ydis4.append(y4)
     zdis4.append(z4)
     xlist4.append(xstep4)
-    
-ax.scatter(xlist1,ydis1,zdis1)
-ax.scatter(xlist2,ydis2,zdis2)
-ax.scatter(xlist3,ydis3,zdis3)
-ax.scatter(xlist4,ydis4,zdis4)
-plt.show()
+
+#maybe build a 2d frame first: 
+
+#ax.scatter(xlist1,ydis1,zdis1)
+#ax.scatter(xlist2,ydis2,zdis2)
+#ax.scatter(xlist3,ydis3,zdis3)
+#ax.scatter(xlist4,ydis4,zdis4)
+#plt.show()
