@@ -48,6 +48,7 @@ class Blade_loading:
             distance_center = segment*width_segment
             V_rotor = 2*np.pi*(rpm/60)*distance_center
             V_total = V_flight + V_rotor
+            print(V_total)
             S = (np.pi * distance_center**2) - sum(x)
             x.append(S)
             L = 0.5 * rho * (V_total)**2 * S * CL

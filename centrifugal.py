@@ -21,7 +21,7 @@ rpm = 286
 rho = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 7
+disc_steps = 6
 G = 28e9
 no_blades = 3 
 
@@ -36,11 +36,11 @@ def lift(length_ds, V_flight, rho,CL):
     lift_list = []
     lift_points = []
     for t in range(disc_steps - 1): 
-        seg_width = taperchord[1]-taperchord[0]
+        seg_width = length_ds[1]-length_ds[0]
         Voutpos = 2*np.pi*(rpm/60)*(length_ds[t+1] - length_ds[0])
-        L = 0.5*rho*list(CL)[t]*(Voutpos)**2 * (np.pi*(length_ds[t+1])**2 - np.pi*(length_ds[t])**2)
+        L = 0.5*rho*list(CL)[t]*(Voutpos + V_flight)**2 * (np.pi*(length_ds[t+1])**2 - np.pi*(length_ds[t])**2)
         lift_list.append(L)
-        lift_point = length_ds[t] + (2/3)*(length_ds[t+1] - length_ds[t]) 
+        lift_point = length_ds[t] + (2/3)*(seg_width) 
         lift_points.append(lift_point)
     return lift_list , lift_points
 
@@ -52,22 +52,10 @@ def moment(lift_list, lift_points):
         ext_moment.append(moment)
     res_moment = sum(ext_moment)
     return ext_moment, res_moment 
+print(lift_list,lift_points)
 print(moment(lift_list,lift_points))
         
-#blade = Blade_loading(radius, chord_length, taper, skin_thickness, V_flight, rpm, rho, CL, list_x, list_z, LDratio, disc_steps)
-#blade.lift_distribution()
-#blade.shear_distribution()
-#blade.moment_distribution()
-#blade.profile()
-#blade.spar_coor()
-#blade.profile_new()
-#blade.twist()
-#blade.center_gravity()
-#blade.inertia()
-#blade.area()
-#blade.bending_stress()
-#blade.shear_stress()
-#blade.max_bend()
+
 
 
 
