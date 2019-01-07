@@ -9,6 +9,8 @@ import numpy as np
 #import matplotlib.pyplot as plt 
 #from sparwars import Blade_loading 
 from airfoil import list_x, list_z
+from sympy.solvers import solve
+from sympy import Symbol
 
 radius = 6.
 taper = 0.5
@@ -66,9 +68,14 @@ def moment(lift_list, y_coor):
             print(lift_points[force] - y_coor[step])
         moment_list.append(moment)
     return moment_list
-        
 
-print(moment(lift_list,y_coor))
+#d = Symbol('d')
+#w_segment = y_coor[1]-y_coor[0]
+#M = F_cen_list[-1]*d - lift_list[-1]*2/3 * w_segment
+#E = 700*10**6
+#I = 2.0205684323392292e-05
+#d = solve( (-M / (E*I)) * w_segment* 2 - d, d)
+#print(d)
         
 
 
