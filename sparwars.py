@@ -9,19 +9,24 @@ from airfoil import list_x, list_z
 import numpy as np
 import matplotlib.pyplot as plt
 
-radius = 6.
+radius = 4.46
 taper = 0.5
 chord_length = 1
 inc_angle = 10
 twist = 20
 skin_thickness = 0.01
 V_flight = 0
-rpm = 286
+rpm = 41 * 60/(2*np.pi)
 rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 5
+disc_steps = 8
+
+#material properities 
+den = 2780
+E = 73.1e9
+Uten = 345e8
 G = 28e9 #needs to be changed for the material  
 
 #one spar at the maximum camber location 
@@ -33,7 +38,7 @@ class Blade_loading:
         self.chord_length = chord_length
         self.taper = taper
         self.V_flight = V_flight
-        self.length_ds = np.linspace(0, radius, disc_steps)
+        self.length_ds = np.linspace(0.6, radius, disc_steps)
         self.taperchord = np.linspace(chord_length, taper*chord_length , disc_steps)
         self.twisting = np.deg2rad(-1* np.linspace(inc_angle, inc_angle- twist , disc_steps))
         self.disc_steps = disc_steps
@@ -49,8 +54,8 @@ class Blade_loading:
         self.lift_list = []
         self.totallift = 0
         x = []
-        width_segment = radius / disc_steps
-        for segment in range(disc_steps+1):
+        width_segment = self.length_ds[1] - self.length_ds[0]
+        for segment in range(disc_steps):
             distance_center = segment*width_segment
             V_rotor = 2*np.pi*(rpm/60)*distance_center
             V_total = V_flight + V_rotor
@@ -103,7 +108,7 @@ class Blade_loading:
         self.cen_spar_z = []
         self.loc_spar = []
         for step in range(disc_steps):
-            self.t_spar = 0.02
+            self.t_spar = 2*skin_thickness
             loc_spar_cs = 0.3*self.taperchord[step]            
             x_spar = list((np.ones(int((len(list_x)- 1)/4)))*(loc_spar_cs))
             z_spar = list(np.linspace(max(self.profile_z[step]), min(self.profile_z[step]),int((len(self.profile_x[step])-1)/4) ))
@@ -116,7 +121,7 @@ class Blade_loading:
             self.len_spar.append(len_spar_cs)
             self.area_spar.append(area_spar_cs)
             self.cen_spar_z.append(cen_spar_z_cs)
-            
+        
     def profile_new(self):
         self.profile1_x = []
         self.profile2_x = []
@@ -257,6 +262,32 @@ class Blade_loading:
                 A4 += dA 
             self.area_list.append([A3+A4,A3,A4])
         
+    def centrifugal_force(self):
+        self.CSAlist = []
+        self.siglist = []
+        self.mlist = []
+        self.ylist= []
+        mass = 0 
+        self.centrifugal = []
+        self.wrs = (rpm*2*np.pi)/60
+        self.w_segment = self.length_ds[1]-self.length_ds[0]
+        for i in range(disc_steps-1):
+            Aspar = (self.area_spar[i] + self.area_spar[i+1])/2
+            Askin = ((sum(self.segment_list[i]) + sum(self.segment_list[i+1]))*skin_thickness)/2 
+            CSA = Aspar + Askin
+            self.CSAlist.append(CSA)
+            m = CSA*den*self.w_segment
+            mass +=m
+            #print(m)
+            ypoint = (self.length_ds[i] + self.length_ds[i+1])/2
+            self.ylist.append(ypoint)
+            centri = den*CSA*((ypoint**2)/2)*self.wrs**2   
+            self.centrifugal.append(centri)
+            sigi = den*((ypoint**2)/2)*self.wrs**2        
+            #sigi = Ni/CSA
+            self.siglist.append(sigi)
+            
+            
     def bending_stress(self):
         self.stress_x_list = []
         self.stress_z_list = []
@@ -382,6 +413,7 @@ blade.profile_new()
 blade.twist()
 blade.center_gravity()
 blade.inertia()
+blade.centrifugal_force()
 blade.area()
 blade.bending_stress()
 blade.shear_stress()
@@ -389,15 +421,15 @@ blade.max_bend()
 #blade.von_mises()
 
 
-for i in range(disc_steps):
-    plt.plot(blade.profile3_x[i], blade.profile3_z[i])
-    plt.plot(blade.profile4_x[i], blade.profile4_z[i])   
-    
+#for i in range(disc_steps):
+#    plt.plot(blade.profile3_x[i], blade.profile3_z[i])
+#    plt.plot(blade.profile4_x[i], blade.profile4_z[i])   
+#    
 #    plt.plot(blade.xspar_list[i],blade.zspar_list[i])
 
-plt.figure()    
-for i in range(disc_steps):
+#plt.figure()    
+#for i in range(disc_steps):
 #    plt.scatter(i, max(blade.tau_list[i]),color='red')
-    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
+    #plt.scatter(i, max(blade.sigma_list[i]),color='blue')
 #    plt.scatter(i, max(blade.von_mises[i]),color='green')
 plt.show()
