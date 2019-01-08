@@ -123,9 +123,9 @@ def centrifugal_force(rpm,disc_steps,y_coor):
         sigi = den*((ypoint**2)/2)*wrs**2        
         #sigi = Ni/CSA
         siglist.append(sigi)
-    return CSA, centrifugal, siglist
+    return CSA, centrifugal, siglist, mass 
 
-CSA, centrifugal, siglist = centrifugal_force(rpm,disc_steps,y_coor)
+CSA, centrifugal, siglist, mass = centrifugal_force(rpm,disc_steps,y_coor)
 
 print(siglist)
 print(centrifugal)
