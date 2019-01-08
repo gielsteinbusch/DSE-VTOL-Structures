@@ -21,7 +21,7 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 5
+disc_steps = 50
 G = 28e9 #needs to be changed for the material  
 
 #one spar at the maximum camber location 
@@ -103,7 +103,7 @@ class Blade_loading:
         self.cen_spar_z = []
         self.loc_spar = []
         for step in range(disc_steps):
-            self.t_spar = 0.02
+            self.t_spar = 2*skin_thickness
             loc_spar_cs = 0.3*self.taperchord[step]            
             x_spar = list((np.ones(int((len(list_x)- 1)/4)))*(loc_spar_cs))
             z_spar = list(np.linspace(max(self.profile_z[step]), min(self.profile_z[step]),int((len(self.profile_x[step])-1)/4) ))
@@ -389,15 +389,15 @@ blade.max_bend()
 #blade.von_mises()
 
 
-for i in range(disc_steps):
-    plt.plot(blade.profile3_x[i], blade.profile3_z[i])
-    plt.plot(blade.profile4_x[i], blade.profile4_z[i])   
-    
+#for i in range(disc_steps):
+#    plt.plot(blade.profile3_x[i], blade.profile3_z[i])
+#    plt.plot(blade.profile4_x[i], blade.profile4_z[i])   
+#    
 #    plt.plot(blade.xspar_list[i],blade.zspar_list[i])
 
-plt.figure()    
-for i in range(disc_steps):
+#plt.figure()    
+#for i in range(disc_steps):
 #    plt.scatter(i, max(blade.tau_list[i]),color='red')
-    plt.scatter(i, max(blade.sigma_list[i]),color='blue')
+    #plt.scatter(i, max(blade.sigma_list[i]),color='blue')
 #    plt.scatter(i, max(blade.von_mises[i]),color='green')
 plt.show()
