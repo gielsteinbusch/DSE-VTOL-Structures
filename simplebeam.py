@@ -336,8 +336,7 @@ beam.area()
 beam.centrifugal_force()
 
 
-for i in range(beam.nseg):
-    plt.plot(beam.profile3_x[i], beam.profile3_z[i])
-    plt.plot(beam.profile4_x[i], beam.profile4_z[i])   
+#for i in range(beam.nseg):
+#    plt.plot(beam.profile3_x[i], beam.profile3_z[i])
+#    plt.plot(beam.profile4_x[i], beam.profile4_z[i])   
     
-    #plt.plot(beam.xspar_list[i],beam.zspar_list[i])
