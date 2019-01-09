@@ -50,8 +50,8 @@ yhub = list(np.linspace(0,0.6,ds_hub))
 #calculate the loads that are acting on the hub section!! 
 beam = Simple_Beam()
 
-beam.sections(blade)
-beam.lift_distribution()
+beam.sections()
+beam.lift_distribution(V_flight)
 beam.shear_distribution() 
 beam.moment_distribution()
 beam.profile()
@@ -67,15 +67,18 @@ vforce = beam.totallift
 axforce = sum(beam.centrifugal)
 moment_applied = beam.totalmoment #THERE IS ALSO A LARGE MOMENT ACTING UPON THIS SECTION FROM THE BLADE AND THE RESULTANT
 
-#determining those bending moments in the hub 
-shear_hub = list(vforce*np.ones(ds_hub)) 
-int_moments = []
-for i in range(len(yhub)):
-    Mfres = shear_hub[i] * yhub[i]
-    Mtotm = moment_applied
-    Mlif = 0
-    moment = Mtotm - Mfres + Mlif
-    int_moments.append(moment)
+#determining those bending moments in the hub
+def bend_mom(vforce, moment_applied):
+    shear_hub = list(vforce*np.ones(ds_hub)) 
+    int_moments = []
+    for i in range(len(yhub)):
+        Mfres = shear_hub[i] * yhub[i]
+        Mtotm = moment_applied
+        Mlif = 0
+        moment = Mtotm - Mfres + Mlif
+        int_moments.append(moment)
+    return int_moments, shear_hub
+int_moments, shear_hub = bend_mom( vforce, moment_applied)
 
 centroid_hub = [xpos_hub,zpos_hub]
 
@@ -214,8 +217,8 @@ for step in range(ds_hub):
         bend.append(x)
 vonmises = np.array(bend)
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection ='3d')    
-ax.scatter(xhubplot, yhubplot, zhubplot, c = vonmises, cmap=plt.jet())
-plt.show()
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection ='3d')    
+#ax.scatter(xhubplot, yhubplot, zhubplot, c = vonmises, cmap=plt.jet())
+#plt.show()
 
