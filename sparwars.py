@@ -387,6 +387,8 @@ class Blade_loading:
             self.qR3 = []
             #for q in qb_list3[step]: 
                 #self.qR3.append(q + red_shear3[step])
+                
+                #DO WE NOT FIND THE TAU HERE???????
     
     def max_bend(self): 
         self.des_list = []

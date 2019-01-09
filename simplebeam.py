@@ -51,7 +51,7 @@ blade.max_bend()
 
 #set up a class for simple beam theory 
 class Simple_Beam:
-    def sections(self,blade):
+    def sections(self):
             self.nseg = disc_steps -1 
             self.radius = radius
             self.chord_length = chord_length
@@ -85,14 +85,15 @@ class Simple_Beam:
             self.list_z = list_z
             self.list_x = list_x
     #new lift distribution based on the lift at the midpoint of each segment        
-    def lift_distribution(self):
+    def lift_distribution(self, V_flight):
         self.x_list = []
         self.lift_list = []
         self.totallift = 0
         x = []
-        self.width_segment = radius / disc_steps
+        self.Vpoint_list = []
         for segment in range(self.nseg):
-            distance_center = self.sec_points[segment]
+            distance_center = self.sec_points[segment] + (1/6)*self.w_segment  
+            # we take the velocity at the 2/3 point due to the nature of the lift distribution, however the rest is calculated at average for segment so halfway!!
             V_rotor = 2*np.pi*(rpm/60)*distance_center
             V_total = V_flight + V_rotor
             S = (np.pi * (self.length_ds[segment +1])**2) - sum(x)
@@ -102,6 +103,7 @@ class Simple_Beam:
             self.lift_list.append(L)
             self.x_list.append(distance_center)
             self.totallift += L
+            self.Vpoint_list.append(distance_center)
     #new shear distribution based on the previous lift 
     def shear_distribution(self):
         self.totalmoment = 0 
@@ -307,23 +309,64 @@ class Simple_Beam:
             m = CSA*den*self.w_segment
             mass +=m
             #print(m)
-            ypoint = self.sec_points[i]
+            ypoint = self.Vpoint_list[i]
+            # we also take the centrifugal force at that pesky 2/3 point as well as it is quadratically distributed
             self.ylist.append(ypoint)
             centri = den*CSA*((ypoint**2)/2)*self.wrs**2   
             self.centrifugal.append(centri)
             sigi = den*((ypoint**2)/2)*self.wrs**2        
             #sigi = Ni/CSA
             self.siglist.append(sigi)
-            
-            
 # BEAM THEORY -----------------------------------------------------------------------------------------------
-
+    def actual_loads(self): 
+        self.Vlist = []
+        self.Mlist = []
+        self.deflections = []
+        MA = 0 
+        RA = 0
+        for step in range(self.nseg): 
+            l = self.w_segment
+            a = (1/3)*l
+            x = l #(this can be changed depending on where you want to determine moment in each discretised section)
+            ix = self.ix_list[step]
+            P = self.centrifugal[step]
+            W = self.lift_list[step]
+            print(P,W, P/W)
+            k = K(E, ix, P)
+            c1 = C1(k,l)
+            c2 = C2(k,l)
+            ca3 = Ca3(k,l,a)
+            ca4 = Ca4(k,l,a)
+            theta_A = theta_A1(W, P, k, l, a)
+            yA = yA1(W, P, k, l ,a)
+            f1 = F1(k,x)
+            f2 = F2(k,x)
+            f3 = F3(k,x)
+            f4 = F4(k,x)
+            fa1 = Fa1(k,x,a)
+            fa2 = Fa2(k,x,a)
+            fa3 = Fa3(k,x,a)
+            fa4 = Fa4(k,x,a)
+            LTv = LTV(W, fa1)
+            LTm = LTM(W,k,fa2)
+            LTth = LTtheta(W,P,fa3)
+            LTy = LTY(W,P,k,fa4)
+            V = RA*f1 + MA*k*f2 + theta_A*P*f1 + LTv
+            M = MA*f1 + (RA/k)*f2 + (theta_A*P/k)*f2 + LTm
+            theta = theta_A*f1 + (MA*k/P)*f2 + (RA/P)*f3 + LTth
+            y = yA + (theta_A/k)*f2 + (MA/P)*f3 + (RA/(P*k))*f4 + LTy #(should just be zero at beams end)
+            ##########################################################- now store shit and sum to complete integration 
+            RA += V
+            MA += M
+            self.Vlist.append(V)
+            self.Mlist.append(M)
+            self.deflections.append(yA)
     ## we can add and alter the stress calculations after the beam theory stuff is finalised ########################################
             
     
 beam = Simple_Beam()
-beam.sections(blade)
-beam.lift_distribution()
+beam.sections()
+beam.lift_distribution(V_flight)
 beam.shear_distribution() 
 beam.moment_distribution()
 beam.profile()
@@ -334,9 +377,10 @@ beam.center_gravity()
 beam.inertia()
 beam.area()
 beam.centrifugal_force()
+beam.actual_loads()
 
 
 #for i in range(beam.nseg):
 #    plt.plot(beam.profile3_x[i], beam.profile3_z[i])
-#    plt.plot(beam.profile4_x[i], beam.profile4_z[i])   
+ #    plt.plot(beam.profile4_x[i], beam.profile4_z[i])   
     
