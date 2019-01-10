@@ -138,9 +138,6 @@ class Blade_loading:
                 bx,bz = self.profile_x[step][i+1], self.profile_z[step][i+1]
                 u = np.array([ax,az])
                 v = np.array([bx,bz])
-                OA = np.sqrt(ax**2 + az**2) 
-                OB = np.sqrt(bx**2 + bz**2)
-                AB = np.sqrt((bx - ax)**2 + (bz - az)**2)
                 parallelogram = np.cross(u,v)
                 dA = 0.5*parallelogram
                 A += dA 
