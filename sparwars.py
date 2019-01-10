@@ -21,7 +21,7 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 8
+disc_steps = 80
 
 #material properities 
 den = 2780

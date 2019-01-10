@@ -23,7 +23,7 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 8
+disc_steps = 80
 
 #material properities 
 den = 2780
@@ -318,49 +318,57 @@ class Simple_Beam:
             #sigi = Ni/CSA
             self.siglist.append(sigi)
 # BEAM THEORY -----------------------------------------------------------------------------------------------
-    def actual_loads(self): 
-        self.Vlist = []
-        self.Mlist = []
-        self.deflections = []
-        MA = 0 
-        RA = 0
-        for step in range(self.nseg): 
-            l = self.w_segment
-            a = (1/3)*l
-            x = l #(this can be changed depending on where you want to determine moment in each discretised section)
+#    def actual_loads(self): 
+#        self.Vlist = []
+#        self.Mlist = []
+#        self.deflections = []
+#        MA = 0 
+#        RA = 0
+#        for step in range(self.nseg): 
+#            l = self.w_segment
+#            a = (1/3)*l
+#            x = l #(this can be changed depending on where you want to determine moment in each discretised section)
+#            ix = self.ix_list[step]
+#            P = sum(self.centrifugal[step:])
+#            W = sum(self.lift_list[step:])
+#            print(ix, P,W, P/W)
+#            k = K(E, ix, P)
+#            c1 = C1(k,l)
+#            c2 = C2(k,l)
+#            ca3 = Ca3(k,l,a)
+#            ca4 = Ca4(k,l,a)
+#            theta_A = theta_A1(W, P, k, l, a)
+#            yA = yA1(W, P, k, l ,a)
+#            f1 = F1(k,x)
+#            f2 = F2(k,x)
+#            f3 = F3(k,x)
+#            f4 = F4(k,x)
+#            fa1 = Fa1(k,x,a)
+#            fa2 = Fa2(k,x,a)
+#            fa3 = Fa3(k,x,a)
+#            fa4 = Fa4(k,x,a)
+#            LTv = LTV(W, fa1)
+#            LTm = LTM(W,k,fa2)
+#            LTth = LTtheta(W,P,fa3)
+#            LTy = LTY(W,P,k,fa4)
+#            V = RA*f1 + MA*k*f2 + theta_A*P*f1 + LTv
+#            M = MA*f1 + (RA/k)*f2 + (theta_A*P/k)*f2 + LTm
+#            theta = theta_A*f1 + (MA*k/P)*f2 + (RA/P)*f3 + LTth
+#            y = yA + (theta_A/k)*f2 + (MA/P)*f3 + (RA/(P*k))*f4 + LTy #(should just be zero at beams end)
+#            print(yA,y)##########################################################- now store shit and sum to complete integration 
+#            #RA = V
+#            #MA = M
+#            self.Vlist.append(V)
+#            self.Mlist.append(M)
+#            self.deflections.append(yA)
+        #print(sum(self.deflections))
+        #print(self.Mlist)
+        self.delta = [np.zeros(self.nseg)]
+        def moment_calc(self): 
             ix = self.ix_list[step]
-            P = self.centrifugal[step]
-            W = self.lift_list[step]
-            print(P,W, P/W)
-            k = K(E, ix, P)
-            c1 = C1(k,l)
-            c2 = C2(k,l)
-            ca3 = Ca3(k,l,a)
-            ca4 = Ca4(k,l,a)
-            theta_A = theta_A1(W, P, k, l, a)
-            yA = yA1(W, P, k, l ,a)
-            f1 = F1(k,x)
-            f2 = F2(k,x)
-            f3 = F3(k,x)
-            f4 = F4(k,x)
-            fa1 = Fa1(k,x,a)
-            fa2 = Fa2(k,x,a)
-            fa3 = Fa3(k,x,a)
-            fa4 = Fa4(k,x,a)
-            LTv = LTV(W, fa1)
-            LTm = LTM(W,k,fa2)
-            LTth = LTtheta(W,P,fa3)
-            LTy = LTY(W,P,k,fa4)
-            V = RA*f1 + MA*k*f2 + theta_A*P*f1 + LTv
-            M = MA*f1 + (RA/k)*f2 + (theta_A*P/k)*f2 + LTm
-            theta = theta_A*f1 + (MA*k/P)*f2 + (RA/P)*f3 + LTth
-            y = yA + (theta_A/k)*f2 + (MA/P)*f3 + (RA/(P*k))*f4 + LTy #(should just be zero at beams end)
-            ##########################################################- now store shit and sum to complete integration 
-            RA += V
-            MA += M
-            self.Vlist.append(V)
-            self.Mlist.append(M)
-            self.deflections.append(yA)
+            P = sum(self.centrifugal[step:])
+            W = sum(self.lift_list[step:])
+            
     ## we can add and alter the stress calculations after the beam theory stuff is finalised ########################################
             
     
