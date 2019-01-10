@@ -21,7 +21,7 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 80
+disc_steps = 10
 
 #material properities 
 den = 2780
@@ -281,9 +281,9 @@ class Blade_loading:
             #print(m)
             ypoint = (self.length_ds[i] + self.length_ds[i+1])/2
             self.ylist.append(ypoint)
-            centri = den*CSA*((ypoint**2)/2)*self.wrs**2   
+            centri = den*CSA*((ypoint*self.w_segment)/2)*self.wrs**2   
             self.centrifugal.append(centri)
-            sigi = den*((ypoint**2)/2)*self.wrs**2        
+            sigi = den*((ypoint*self.w_segment)/2)*self.wrs**2        
             #sigi = Ni/CSA
             self.siglist.append(sigi)
             

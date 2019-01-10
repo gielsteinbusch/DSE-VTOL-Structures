@@ -23,7 +23,7 @@ rho = 0.5
 CL = 0.5
 W_aircraft = 2500
 LDratio = 9
-disc_steps = 80
+disc_steps = 10
 
 #material properities 
 den = 2780
@@ -312,11 +312,68 @@ class Simple_Beam:
             ypoint = self.Vpoint_list[i]
             # we also take the centrifugal force at that pesky 2/3 point as well as it is quadratically distributed
             self.ylist.append(ypoint)
-            centri = den*CSA*((ypoint**2)/2)*self.wrs**2   
+            centri = den*CSA*((ypoint*self.w_segment)/2)*self.wrs**2   
             self.centrifugal.append(centri)
-            sigi = den*((ypoint**2)/2)*self.wrs**2        
+            sigi = den*((ypoint*self.w_segment)/2)*self.wrs**2        
             #sigi = Ni/CSA
             self.siglist.append(sigi)
+    
+    def deflections(self):
+        self.niter = 3
+        self.iteration = 0
+        self.deflist = [np.zeros(self.nseg)] 
+        while self.iteration < self.niter:
+            deflections = []
+            moments = []
+            change1 = list(self.deflist[self.iteration])[0]
+            changedefl = [change1]
+            for i in range(len(self.deflist[0])-1): 
+                change = list(self.deflist[self.iteration])[i+1] - list(self.deflist[self.iteration])[i]
+                changedefl.append(change)                   
+            #print(changedefl)
+            for step in range(self.nseg):
+                    if self.iteration == 0:                
+                        Ma = self.totalmoment
+                    else:
+                        Ma = sum(np.array(self.lift_list)*(np.array(self.Vpoint_list )-blade.length_ds[0])) - Mp
+                        #print(Ma)
+                    Ra = self.totallift
+                    ix = self.ix_list[step]
+                    z = self.Vpoint_list[step] - blade.length_ds[0]
+                    W = self.lift_list
+                    P = self.centrifugal
+                    Mp = sum(np.array(P)*self.deflist[self.iteration])
+                    #Pdelta = np.array(P)*np.array(changedefl)
+                    
+                    Pdelta = 0
+                    for x in range(self.nseg):
+                        Pdelta += P[x]*(list(self.deflist[self.iteration])[step]-list(self.deflist[self.iteration])[x])*np.heaviside(list(self.deflist[self.iteration])[step]-list(self.deflist[self.iteration])[x],0.5)
+                    print(Pdelta, P[step])
+                    #print(Mp)
+                    la = z*np.ones(self.nseg) - (np.array(self.Vpoint_list )-blade.length_ds[0])
+                    #print(la)
+                    la = la * np.heaviside(la, 0.5)
+                    
+                    Wla = np.sum(np.array(W)*la)
+                    Wla3 = np.sum(np.array(W)*(la**3))
+                    #print(Wla)
+                    Pla2 = np.sum(Mp*(la**2))
+                    
+                    Moment = Ma + Wla - Ra*z - Pdelta #sum(Mp)
+                    moments.append(Moment)
+                    #print(Moment)
+                    vEI = (Ma*(z**2)/2) + Wla3/6 - Ra*(z**3)/6 - Pla2/2
+                    #print(Pla2)
+                    v = vEI/(E*ix)
+                    deflections.append(v)
+            #print(Pdelta)
+            self.deflist.append(np.array(deflections))
+            self.iteration +=1 
+            
+                    #print(Moment)
+        #print(self.M_it)
+    
+            
 # BEAM THEORY -----------------------------------------------------------------------------------------------
 #    def actual_loads(self): 
 #        self.Vlist = []
@@ -363,12 +420,9 @@ class Simple_Beam:
 #            self.deflections.append(yA)
         #print(sum(self.deflections))
         #print(self.Mlist)
-        self.delta = [np.zeros(self.nseg)]
-        def moment_calc(self): 
-            ix = self.ix_list[step]
-            P = sum(self.centrifugal[step:])
-            W = sum(self.lift_list[step:])
-            
+       
+                
+                
     ## we can add and alter the stress calculations after the beam theory stuff is finalised ########################################
             
     
@@ -385,10 +439,11 @@ beam.center_gravity()
 beam.inertia()
 beam.area()
 beam.centrifugal_force()
-beam.actual_loads()
 
+beam.deflections()
 
+for i in range(beam.niter):
+    plt.plot(beam.Vpoint_list, beam.deflist[i])
 #for i in range(beam.nseg):
 #    plt.plot(beam.profile3_x[i], beam.profile3_z[i])
- #    plt.plot(beam.profile4_x[i], beam.profile4_z[i])   
-    
+ #    plt.plot(beam.profile4_x[i], beam.profile4_z[i]) 
