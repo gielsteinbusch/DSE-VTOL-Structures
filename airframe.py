@@ -17,7 +17,7 @@ E = 700*10**6
 OEW = 1400.
 boom_distance = 0.25
 A_stringer = 0.0001
-t_skin = 0.003
+t_skin = 0.001
 
 ## forces with their distances to the nose tip
 F_weight =    [-OEW*9.81          	     , 3.9]
@@ -42,8 +42,8 @@ for pos in np.linspace(0 , L_airframe , int(L_airframe*step)+1):
     shearlist.append(shear)
     poslist.append(pos)
 
-#plt.plot(poslist, momentlist)
-#plt.plot(poslist, shearlist)
+plt.plot(poslist, momentlist)
+plt.plot(poslist, shearlist)
 
 maxshear = max(shearlist)
 maxmoment = max(momentlist)
@@ -61,9 +61,6 @@ for theta in thetalist:
     if r*np.sin(theta) < -H_airframe/2 + 0.2: y_coorlist.append(-H_airframe/2 + 0.2)
     else: y_coorlist.append(r*np.sin(theta))
     x_coorlist.append(r*np.cos(theta))
-
-plt.axis([-1.5,1.5,-1.5,1.5])
-plt.plot(x_coorlist, y_coorlist)
 
 ## adding booms, with equal spacing
 
@@ -110,8 +107,6 @@ Iyy = 0
 for i in range(len(x_boomcoor)):
     Ixx += (y_boomcoor[i]-cen_y)**2 * boom_area_list[i]
     Iyy += (x_boomcoor[i]-cen_x)**2 * boom_area_list[i]
-plt.scatter(x_boomcoor, y_boomcoor)
-plt.hlines(cen_y,-1,1)
 
 ## calculate bending stress
 sigma_list = []
@@ -145,7 +140,12 @@ for i in range(len(x_boomcoor)):
                     q_base*(y_boomcoor[i+1]-y_boomcoor[i])*(y_boomcoor[i]-cen_y)
     q_base_list.append(q_base)
 q_red = -q_moment / (2*A)
-print(q_base_list)
 q_tot_list = [x+q_red for x in q_base_list]
-print(q_tot_list)
 tau_list = [x/t_skin for x in q_tot_list]
+
+## results
+#plt.axis([-1.5,1.5,-1.5,1.5])
+#plt.plot(x_coorlist, y_coorlist)
+#plt.scatter(x_boomcoor, y_boomcoor)
+#plt.hlines(cen_y,-1,1)
+print('max sigma:', max(sigma_list), ', max tau:', max(tau_list))
