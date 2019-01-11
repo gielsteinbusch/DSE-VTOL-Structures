@@ -368,7 +368,7 @@ class Simple_Beam:
                     #print(Moment)
                     vEI = (Ma*(z**2)/2) + Wla3/6 - Ra*(z**3)/6 - Pla3/2
                     #print(Pla2)
-                    v = vEI/(E*ix)
+                    v = np.average(vEI/(E*ix))
                     deflections.append(v)
             #print(Pdelta)
             self.deflist.append(np.array(deflections))
