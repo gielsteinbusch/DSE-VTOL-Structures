@@ -7,31 +7,54 @@ Created on Tue Jan  8 13:01:51 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas
 
 #import values
 step = 1. / 0.1 #second number is step length (m)
-L_airframe = 5.8
+L_HAMRAC = 11.
 W_airframe = 1.35
 H_airframe = 1.8
+MTOW = 2006
+boom_distance = 0.3
+A_stringer = 150 * 10**(-6)
+t_skin = 0.005
+## assume alluminium airframe
+ve = 0.334
+kc = 4
 E = 700*10**6
-OEW = 1400.
-boom_distance = 0.25
-A_stringer = 0.0001
-t_skin = 0.001
 
-## forces with their distances to the nose tip
-F_weight =    [-OEW*9.81          	     , 3.9]
-F_mainrotor = [0.9*abs(F_weight[0])    , 3.5]
-F_horstab =   [0.2*abs(F_weight[0])    , 5. ]
-F_heist =     [-0.1*abs(F_weight[0])    , 5.7]
+## Forces with their distances to the nose tip
+Airframe =       [-200 *9.81 , 4045.]
+Control_h =     [-100*9.81 , 8500.]
+Control_v =     [-100*9.81 , 11000.]
+Avionics =      [-75*9.81 , 500.]
+Hoist =         [-50*9.81 , 5150.]
+Powertrain =    [-100*9.81, 4988.67]
+Engine =        [-280*9.81, 5500.]
+Fuel_tank =     [-20*9.81, 5500.]
+EMS =           [-130*9.81, 3250.]
+Skids =         [-100*9.81, 3250.]
 
-Forces = [F_weight, F_mainrotor, F_horstab, F_heist]
+Pilot =         [-85*9.81, 1100.]
+Cabin1 =        [-85*9.81, 1700.]
+Cabin2 =        [-85*9.81, 4500.]
+Fuel =          [-596*9.81 , 5500.]
+
+F_mainrotor =   [MTOW*9.81 , 4988.67]
+
+
+Forces = [Airframe , Control_h, Control_v, Avionics, Hoist,
+          Powertrain, Engine, Fuel_tank, EMS, Skids, 
+          Pilot, Cabin1, Cabin2, Fuel,
+          F_mainrotor]
+for i in Forces: i[1] = i[1]*10**(-3)
+
 
 momentlist = []
 shearlist = []
 
 poslist = []
-for pos in np.linspace(0 , L_airframe , int(L_airframe*step)+1):
+for pos in np.linspace(0 , L_HAMRAC , int(L_HAMRAC*step)+1):
     shear = 0
     moment = 0
     for i in range(len(Forces)):
@@ -45,8 +68,8 @@ for pos in np.linspace(0 , L_airframe , int(L_airframe*step)+1):
 plt.plot(poslist, momentlist)
 plt.plot(poslist, shearlist)
 
-maxshear = max(shearlist)
-maxmoment = max(momentlist)
+maxshear = max(max(shearlist),abs(min(shearlist)))
+maxmoment = max(max(momentlist),abs(min(momentlist)))
 
 a = W_airframe/2
 b = H_airframe/2 + 0.2
@@ -111,7 +134,8 @@ for i in range(len(x_boomcoor)):
 ## calculate bending stress
 sigma_list = []
 for i in range(len(x_boomcoor)):
-    sigma_list += [maxmoment / Ixx * (y_boomcoor[i] - cen_y)]
+    sigma_list += [maxmoment * (y_boomcoor[i] - cen_y) / Ixx]
+    print(maxmoment, (y_boomcoor[i] - cen_y), Ixx)
     
 ## area calculation
 A = 0
@@ -124,7 +148,6 @@ for i in range(len(x_boomcoor)):
     u = np.array([ax,az])
     v = np.array([bx,bz])
     A += 0.5*np.cross(v,u)
-print(A)
     
 ## calculate shear stress
 q_base_list = []
@@ -143,9 +166,20 @@ q_red = -q_moment / (2*A)
 q_tot_list = [x+q_red for x in q_base_list]
 tau_list = [x/t_skin for x in q_tot_list]
 
+## calculate the critical buckling stress of skin
+sigma_cr = np.pi**2 * kc * E * (t_skin/boom_distance)**2 / (12*(1-ve**2))
+
+maxsigma = max(max(sigma_list),min(sigma_list))
+maxtau = max(max(tau_list),min(tau_list))
+
 ## results
 #plt.axis([-1.5,1.5,-1.5,1.5])
 #plt.plot(x_coorlist, y_coorlist)
 #plt.scatter(x_boomcoor, y_boomcoor)
 #plt.hlines(cen_y,-1,1)
-print('max sigma:', max(sigma_list), ', max tau:', max(tau_list))
+#print('max sigma:', max(sigma_list), ', max tau:', max(tau_list))
+output = pandas.DataFrame([maxsigma, sigma_cr, maxtau,maxsigma/sigma_cr],
+                          ['max sigma:','max critical buckling stress:','max tau', 'sigma ratio'])
+                           
+                           
+print(output)
