@@ -16,7 +16,7 @@ taper = 0.5
 chord_length = 1
 inc_angle = 10
 twist = 20
-skin_thickness = 0.01
+skin_thickness = 0.05
 V_flight = 0
 rpm = 41 * 60/(2*np.pi)
 rho = 0.5
@@ -27,7 +27,7 @@ disc_steps = 10
 
 #material properities 
 den = 2780
-E = 73.1e9
+E = 181.1e9
 Uten = 345e8
 G = 28e9
 
@@ -319,12 +319,12 @@ class Simple_Beam:
             self.siglist.append(sigi)
     
     def deflections(self):
-        self.niter = 2
+        self.niter = 15
         iteration = 0
         self.deflist = [np.zeros(self.nseg)] 
         while iteration < self.niter:
             deflections = []
-            moments = []
+            self.moments = []
 #            change1 = list(self.deflist[iteration])[0]
 #            changedefl = [change1]
 #            for i in range(len(self.deflist[0])-1): 
@@ -342,6 +342,8 @@ class Simple_Beam:
                     z = self.Vpoint_list[step] - blade.length_ds[0]
                     W = self.lift_list
                     P = self.centrifugal
+                    Pd = np.sum(P) * self.deflist[iteration][step]
+                    #print(np.sum(P), self.deflist[iteration][step], Pd)
                     Mp = sum(np.array(P)*self.deflist[iteration])
                     #Pdelta = np.array(P)*np.array(changedefl)
                     
@@ -361,12 +363,13 @@ class Simple_Beam:
                     #print(Wla)
                     Pla2 = np.sum(Mp*(la**2))
                     Pla3 = Pdelta*la**2
+                    Pdla2 = Pd*la**2
                     #print(Mp)
-                    Moment = Ma + Wla - Ra*z - Pdelta #sum(Mp)
+                    Moment = Ma + Wla - Ra*z - Pdelta + Pd #sum(Mp)
                     #print(Pdelta, P[step], Moment, Pla2)
-                    moments.append(Moment)
+                    self.moments.append(Moment)
                     #print(Moment)
-                    vEI = (Ma*(z**2)/2) + Wla3/6 - Ra*(z**3)/6 - Pla3/2
+                    vEI = (Ma*(z**2)/2) + Wla3/6 - Ra*(z**3)/6 - Pla3/2 + Pdla2/2
                     #print(Pla2)
                     v = np.average(vEI/(E*ix))
                     deflections.append(v)
