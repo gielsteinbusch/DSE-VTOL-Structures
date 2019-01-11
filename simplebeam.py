@@ -319,20 +319,20 @@ class Simple_Beam:
             self.siglist.append(sigi)
     
     def deflections(self):
-        self.niter = 3
-        self.iteration = 0
+        self.niter = 2
+        iteration = 0
         self.deflist = [np.zeros(self.nseg)] 
-        while self.iteration < self.niter:
+        while iteration < self.niter:
             deflections = []
             moments = []
-            change1 = list(self.deflist[self.iteration])[0]
-            changedefl = [change1]
-            for i in range(len(self.deflist[0])-1): 
-                change = list(self.deflist[self.iteration])[i+1] - list(self.deflist[self.iteration])[i]
-                changedefl.append(change)                   
+#            change1 = list(self.deflist[iteration])[0]
+#            changedefl = [change1]
+#            for i in range(len(self.deflist[0])-1): 
+#                change = list(self.deflist[iteration])[i+1] - list(self.deflist[iteration])[i]
+#                changedefl.append(change)                   
             #print(changedefl)
             for step in range(self.nseg):
-                    if self.iteration == 0:                
+                    if iteration == 0:                
                         Ma = self.totalmoment
                     else:
                         Ma = sum(np.array(self.lift_list)*(np.array(self.Vpoint_list )-blade.length_ds[0])) - Mp
@@ -342,33 +342,37 @@ class Simple_Beam:
                     z = self.Vpoint_list[step] - blade.length_ds[0]
                     W = self.lift_list
                     P = self.centrifugal
-                    Mp = sum(np.array(P)*self.deflist[self.iteration])
+                    Mp = sum(np.array(P)*self.deflist[iteration])
                     #Pdelta = np.array(P)*np.array(changedefl)
                     
                     Pdelta = 0
                     for x in range(self.nseg):
-                        Pdelta += P[x]*(list(self.deflist[self.iteration])[step]-list(self.deflist[self.iteration])[x])*np.heaviside(list(self.deflist[self.iteration])[step]-list(self.deflist[self.iteration])[x],0.5)
-                    print(Pdelta, P[step])
-                    #print(Mp)
+                        if list(self.deflist[iteration])[-1] > 0:
+                            Pdelta += P[x]*(list(self.deflist[iteration])[step]-list(self.deflist[iteration])[x])*np.heaviside(list(self.deflist[iteration])[step]-list(self.deflist[iteration])[x],0.5)
+                        else: 
+                            Pdelta += P[x]*(list(self.deflist[iteration])[step]-list(self.deflist[iteration])[x])*np.heaviside(list(self.deflist[iteration])[x]-list(self.deflist[iteration])[step],0.5)
                     la = z*np.ones(self.nseg) - (np.array(self.Vpoint_list )-blade.length_ds[0])
-                    #print(la)
+                    #print(len(la))
                     la = la * np.heaviside(la, 0.5)
-                    
+                    #print(la)
                     Wla = np.sum(np.array(W)*la)
+                    #print(Wla)
                     Wla3 = np.sum(np.array(W)*(la**3))
                     #print(Wla)
                     Pla2 = np.sum(Mp*(la**2))
-                    
+                    Pla3 = Pdelta*la**2
+                    #print(Mp)
                     Moment = Ma + Wla - Ra*z - Pdelta #sum(Mp)
+                    #print(Pdelta, P[step], Moment, Pla2)
                     moments.append(Moment)
                     #print(Moment)
-                    vEI = (Ma*(z**2)/2) + Wla3/6 - Ra*(z**3)/6 - Pla2/2
+                    vEI = (Ma*(z**2)/2) + Wla3/6 - Ra*(z**3)/6 - Pla3/2
                     #print(Pla2)
                     v = vEI/(E*ix)
                     deflections.append(v)
             #print(Pdelta)
             self.deflist.append(np.array(deflections))
-            self.iteration +=1 
+            iteration +=1 
             
                     #print(Moment)
         #print(self.M_it)
