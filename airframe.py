@@ -15,14 +15,19 @@ L_HAMRAC = 11.
 W_airframe = 1.35
 H_airframe = 1.8
 MTOW = 2006
-boom_distance = 0.3
+boom_distance = 0.25
 A_stringer = 150 * 10**(-6)
-t_skin = 0.005
+t_skin = 0.006
+d_skids = 2200
+cg = 4910.807975
+lf = 4
 ## assume alluminium airframe
 ve = 0.334
 kc = 4
 E = 700*10**6
 
+
+## CASE 1: hover
 ## Forces with their distances to the nose tip
 Airframe =       [-200 *9.81 , 4045.]
 Control_h =     [-100*9.81 , 8500.]
@@ -42,11 +47,47 @@ Fuel =          [-596*9.81 , 5500.]
 
 F_mainrotor =   [MTOW*9.81 , 4988.67]
 
-
-Forces = [Airframe , Control_h, Control_v, Avionics, Hoist,
+Forces_case1 = [Airframe , Control_h, Control_v, Avionics, Hoist,
           Powertrain, Engine, Fuel_tank, EMS, Skids, 
           Pilot, Cabin1, Cabin2, Fuel,
           F_mainrotor]
+
+## CASE 2: landing
+## Forces with their distances to the nose tip
+Vehicle_weight = [-lf*MTOW*9.81,  cg]
+Skids1 =        [0.5*-Vehicle_weight[0], cg-0.5*d_skids]
+Skids2 =        [0.5*-Vehicle_weight[0], cg+0.5*d_skids]
+
+Forces_case2 = [Vehicle_weight, Skids1, Skids2]
+
+## CASE 3: landing 2.0
+Airframe =       [-lf*200 *9.81 , 4045.]
+Control_h =     [-lf*100*9.81 , 8500.]
+Control_v =     [-lf*100*9.81 , 11000.]
+Avionics =      [-lf*75*9.81 , 500.]
+Hoist =         [-lf*50*9.81 , 5150.]
+Powertrain =    [-lf*100*9.81, 4988.67]
+Engine =        [-lf*280*9.81, 5500.]
+Fuel_tank =     [-lf*20*9.81, 5500.]
+EMS =           [-lf*130*9.81, 3250.]
+Skids =         [-lf*100*9.81, 3250.]
+
+Pilot =         [-lf*85*9.81, 1100.]
+Cabin1 =        [-lf*85*9.81, 1700.]
+Cabin2 =        [-lf*85*9.81, 4500.]
+Fuel =          [-lf*596*9.81 , 5500.]
+
+Skids1 =        [0.5*-Vehicle_weight[0], cg-0.5*d_skids]
+Skids2 =        [0.5*-Vehicle_weight[0], cg+0.5*d_skids]
+
+Forces_case3 = [Airframe , Control_h, Control_v, Avionics, Hoist,
+          Powertrain, Engine, Fuel_tank, EMS, Skids, 
+          Pilot, Cabin1, Cabin2, Fuel,
+          Skids1, Skids2]
+
+
+Forces = Forces_case3
+
 for i in Forces: i[1] = i[1]*10**(-3)
 
 
@@ -166,11 +207,17 @@ q_red = -q_moment / (2*A)
 q_tot_list = [x+q_red for x in q_base_list]
 tau_list = [x/t_skin for x in q_tot_list]
 
+## calculate von mises stress
+vonmises_list = []
+for i in range(len(sigma_list)):
+    vonmises_list.append(np.sqrt(sigma_list[i]**2+3*tau_list[i]**2))
+
 ## calculate the critical buckling stress of skin
 sigma_cr = np.pi**2 * kc * E * (t_skin/boom_distance)**2 / (12*(1-ve**2))
 
-maxsigma = max(max(sigma_list),min(sigma_list))
-maxtau = max(max(tau_list),min(tau_list))
+maxsigma = max(max(sigma_list),abs(min(sigma_list)))
+maxtau = max(max(tau_list),abs(min(tau_list)))
+maxvonmises = max(max(vonmises_list),abs(min(vonmises_list)))
 
 ## results
 #plt.axis([-1.5,1.5,-1.5,1.5])
@@ -178,8 +225,8 @@ maxtau = max(max(tau_list),min(tau_list))
 #plt.scatter(x_boomcoor, y_boomcoor)
 #plt.hlines(cen_y,-1,1)
 #print('max sigma:', max(sigma_list), ', max tau:', max(tau_list))
-output = pandas.DataFrame([maxsigma, sigma_cr, maxtau,maxsigma/sigma_cr],
-                          ['max sigma:','max critical buckling stress:','max tau', 'sigma ratio'])
+output = pandas.DataFrame([maxsigma, sigma_cr, maxtau, maxvonmises,maxsigma/sigma_cr],
+                          ['max sigma:','max critical buckling stress:','max tau', 'max vonmises','sigma ratio'])
                            
                            
 print(output)
